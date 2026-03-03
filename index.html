@@ -1,0 +1,1788 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#7b5cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>ザ・折衝 — HanaSaku</title>
+  <style>
+    :root{
+      --bg1:#fff7fb; --bg2:#f2fbff;
+      --text:#203245; --muted:#5b6b7a; --border:#e6eaf0;
+      --danger:#ff2f55;
+      --shadow: 0 14px 34px rgba(30,60,90,.14);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text);
+      background:
+        radial-gradient(900px 700px at 15% 10%, rgba(93,214,255,.26), transparent 55%),
+        radial-gradient(900px 700px at 85% 15%, rgba(255,184,77,.22), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      display:flex; justify-content:center; padding:8px;
+    }
+    .app{
+      width:min(520px, 100%);
+      height: calc(100vh - 16px);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background: rgba(255,255,255,.80);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+    header{
+      padding:8px 10px 6px;
+      border-bottom:1px solid var(--border);
+      background: rgba(255,255,255,.74);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .title{min-width:0}
+    .title .h{font-weight:1100;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .title .s{margin-top:2px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);}
+    .right{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .chip{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      padding:5px 9px; border-radius:999px;
+      white-space:nowrap;
+      font-family:var(--mono); font-size:10px; color:var(--muted);
+    }
+    .btn{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.84));
+      color:var(--text);
+      padding:7px 9px; border-radius:12px;
+      cursor:pointer; font-weight:1000; font-size:11px;
+      box-shadow: 0 10px 20px rgba(30,60,90,.08);
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .scoreBig{
+      padding:7px 12px;
+      font-size: 12px;
+      font-weight:1400;
+      color: white;
+      border:1px solid rgba(255,255,255,.20);
+      background: linear-gradient(90deg, rgba(37,199,160,.95), rgba(93,214,255,.90), rgba(255,184,77,.86));
+      box-shadow: 0 18px 34px rgba(93,214,255,.18);
+      text-shadow: 0 10px 20px rgba(0,0,0,.14);
+      user-select:none;
+    }
+
+    .turnBig{
+      padding:7px 12px;
+      font-size: 12px;
+      font-weight:1400;
+      color: white;
+      border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(255,184,77,.86));
+      box-shadow: 0 18px 34px rgba(255,77,219,.20);
+      text-shadow: 0 12px 22px rgba(0,0,0,.18);
+      user-select:none;
+    }
+    .turnBig.danger{
+      animation: turnPulse .8s ease-in-out infinite alternate;
+      filter: saturate(1.2);
+    }
+    @keyframes turnPulse{
+      from{ transform: translateY(0) scale(1); }
+      to{ transform: translateY(-1px) scale(1.04); }
+    }
+
+    .top{
+      padding:8px 10px;
+      display:flex; flex-direction:column; gap:8px;
+      border-bottom:1px solid var(--border);
+      background: rgba(255,255,255,.62);
+    }
+    .cardsRow{display:grid; grid-template-columns:1fr; gap:8px;}
+    .card{
+      border-radius: 16px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 22px rgba(30,60,90,.08);
+      padding:9px 10px;
+      border:1px solid var(--border);
+    }
+    .arrearsCard{ border-color: rgba(255,47,85,.22); }
+    .arrearsRow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+    .arrearsLabel{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;gap:8px;align-items:center;}
+    .arrearsMonths{
+      font-family:var(--mono); font-size:10px;
+      padding:3px 7px; border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.9);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .arrearsBig{
+      margin-top:2px;
+      font-size:26px; font-weight:1200;
+      line-height:1.05; color: var(--danger);
+      text-shadow: 0 10px 20px rgba(255,47,85,.12);
+      letter-spacing: .5px;
+    }
+
+    .needCard{ border-color: rgba(37,199,160,.22); }
+    .needTop{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      font-family:var(--mono); font-size:10px; color:var(--muted);
+    }
+    .needAmount{
+      margin-top:5px;
+      font-size:18px; font-weight:1200;
+      letter-spacing:.3px;
+      color: rgba(37,199,160,.98);
+      text-shadow: 0 10px 18px rgba(37,199,160,.10);
+    }
+
+    .slotCard{
+      border:1px solid rgba(123,92,255,.24);
+      border-radius:16px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 22px rgba(30,60,90,.08);
+      padding:9px 10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .slotTop{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      font-family:var(--mono); font-size:10px; color:var(--muted);
+    }
+    .slotState{
+      padding:3px 9px; border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.9);
+      white-space:nowrap;
+    }
+
+    .evBig{
+      padding:8px 12px;
+      border-radius: 999px;
+      color:white;
+      font-weight:1400;
+      letter-spacing:.25px;
+      font-family: var(--mono);
+      font-size: 12px;
+      border:1px solid rgba(255,255,255,.22);
+      background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(123,92,255,.92));
+      box-shadow: 0 18px 34px rgba(255,77,219,.22);
+      text-shadow: 0 12px 22px rgba(0,0,0,.18);
+      animation: evPulse 1.05s ease-in-out infinite alternate;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .evGood{
+      background: linear-gradient(90deg, rgba(37,199,160,.95), rgba(93,214,255,.90), rgba(255,184,77,.86)) !important;
+      box-shadow: 0 18px 34px rgba(93,214,255,.20) !important;
+    }
+    .evBad{
+      background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(123,92,255,.92)) !important;
+    }
+    @keyframes evPulse{
+      from{ transform: translateY(0) scale(1); filter:saturate(1.05); }
+      to  { transform: translateY(-1px) scale(1.03); filter:saturate(1.22); }
+    }
+
+    .slotReadyBanner{
+      display:none;
+      margin-top:8px;
+      padding:8px 10px;
+      border-radius: 14px;
+      color:white;
+      font-weight:1200;
+      background: linear-gradient(90deg, rgba(123,92,255,.95), rgba(255,77,219,.85), rgba(255,184,77,.75));
+      box-shadow: 0 16px 30px rgba(255,77,219,.18);
+      text-align:center;
+      letter-spacing: .2px;
+      font-size:12px;
+      white-space:pre-wrap;
+    }
+    .slotReadyBanner.show{ display:block; }
+
+    .slotGlow{
+      position:absolute; inset:-40px;
+      pointer-events:none; opacity:0;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(37,199,160,.22), transparent 45%),
+        radial-gradient(circle at 80% 20%, rgba(93,214,255,.20), transparent 45%),
+        radial-gradient(circle at 55% 80%, rgba(255,184,77,.18), transparent 55%);
+      transform: scale(1.02);
+      transition: opacity .25s ease;
+    }
+    .slotGlow.show{ opacity:1; }
+
+    .reels{
+      margin-top:8px;
+      display:flex; gap:7px;
+      align-items:center; justify-content:center;
+      flex-wrap:nowrap;
+    }
+    .reel{
+      width:40px; height:56px;
+      border-radius: 14px;
+      border: 1px solid rgba(123,92,255,.20);
+      background: linear-gradient(180deg, rgba(123,92,255,.12), rgba(255,77,219,.10));
+      box-shadow: 0 12px 22px rgba(123,92,255,.10);
+      display:flex; align-items:center; justify-content:center;
+      font-family: var(--mono);
+      font-weight: 1200;
+      font-size: 24px;
+      letter-spacing: .4px;
+      user-select:none;
+    }
+    .yenMark{
+      font-family: var(--mono);
+      font-weight: 1200;
+      color: rgba(123,92,255,.9);
+      margin-right: 4px;
+      user-select:none;
+      font-size:12px;
+    }
+    .slotAmountText{
+      margin-top:6px; text-align:center;
+      font-family: var(--mono);
+      font-size: 11px; color: var(--muted);
+    }
+
+    .slotRow{ margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .slotBtn{
+      flex:1; min-width: 160px; height:46px;
+      border-radius: 14px;
+      font-weight:1200; font-size:13px; color:white;
+      border: none;
+      background: linear-gradient(180deg, rgba(123,92,255,.92), rgba(255,77,219,.82));
+      box-shadow: 0 16px 30px rgba(123,92,255,.18);
+      cursor:pointer;
+    }
+    .slotBtn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
+
+    .flash{ animation: flashPop .9s ease-in-out infinite alternate; }
+    @keyframes flashPop{
+      0%{ transform: translateY(0) scale(1); filter:saturate(1); }
+      100%{ transform: translateY(-1px) scale(1.02); filter:saturate(1.25); }
+    }
+
+    .barPop{ animation: barPop .28s ease-out; }
+    @keyframes barPop{
+      0%{ transform: scaleY(1); }
+      55%{ transform: scaleY(1.25); }
+      100%{ transform: scaleY(1); }
+    }
+
+    .progressWrap{
+      margin-top:8px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255,255,255,.75);
+      padding:8px 10px;
+    }
+    .progressTop{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      font-family: var(--mono); font-size: 10px; color: var(--muted);
+    }
+    .bar{
+      margin-top:6px; width:100%; height:8px;
+      border-radius:999px;
+      background: rgba(32,50,69,.08);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%; width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(93,214,255,.9), rgba(255,184,77,.75), rgba(255,77,219,.75));
+      transition: width .35s ease;
+    }
+
+    .log{
+      flex:1; overflow:auto;
+      padding:10px;
+      display:flex; flex-direction:column; gap:9px;
+      scroll-behavior:smooth;
+    }
+    .row{display:flex; gap:10px; align-items:flex-start;}
+    .row.me{justify-content:flex-start;}
+    .row.other{justify-content:flex-end;}
+    .row.police{justify-content:center;}
+    .bubble{
+      max-width: 90%;
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding:9px 10px;
+      line-height:1.55;
+      background: rgba(255,255,255,.92);
+      white-space:pre-wrap;
+      word-wrap:break-word;
+      box-shadow: 0 10px 24px rgba(30,60,90,.10);
+      font-size:14px;
+    }
+    .me .bubble{
+      background: linear-gradient(180deg, rgba(93,214,255,.30), rgba(185,242,255,.35));
+      border-color: rgba(93,214,255,.35);
+    }
+    .other .bubble{
+      background: linear-gradient(180deg, rgba(255,184,77,.32), rgba(255,224,166,.42));
+      border-color: rgba(255,184,77,.35);
+    }
+    .police .bubble{
+      max-width: 92%;
+      background: linear-gradient(180deg, rgba(45,156,219,.18), rgba(86,204,242,.18));
+      border-color: rgba(45,156,219,.28);
+      font-weight:950;
+      text-align:center;
+    }
+    .meta{
+      margin-top:5px;
+      font-size:10px; color:var(--muted);
+      display:flex; gap:10px; align-items:center;
+    }
+    .tag{
+      font-family:var(--mono);
+      border:1px solid var(--border);
+      padding:2px 7px; border-radius:999px;
+      background: rgba(255,255,255,.85);
+      white-space:nowrap;
+    }
+
+    .stickyDebtor{
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      border-top: 1px solid rgba(255,184,77,.35);
+      background: linear-gradient(180deg, rgba(255,255,255,.60), rgba(255,255,255,.92));
+      padding: 8px 10px;
+      display:none;
+    }
+    .stickyDebtor.show{ display:block; }
+    .stickyTop{
+      display:flex; justify-content:space-between; align-items:center; gap:8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stickyBody{
+      border:1px solid rgba(255,184,77,.35);
+      background: linear-gradient(180deg, rgba(255,184,77,.20), rgba(255,224,166,.28));
+      border-radius: 14px;
+      padding: 9px 10px;
+      line-height:1.55;
+      box-shadow: 0 12px 22px rgba(30,60,90,.10);
+      white-space:pre-wrap;
+    }
+
+    footer{
+      border-top:1px solid var(--border);
+      background: rgba(255,255,255,.78);
+      padding:8px 8px 10px;
+    }
+    .inputRow{display:flex;gap:8px;align-items:center;}
+    input[type="text"]{
+      flex:1;height:48px;padding:0 12px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.98);
+      color:var(--text);
+      outline:none;
+      font-size:16px;
+      box-shadow: 0 10px 22px rgba(30,60,90,.08);
+    }
+    input[type="text"]:focus{
+      border-color: rgba(93,214,255,.86);
+      box-shadow: 0 0 0 4px rgba(93,214,255,.25), 0 10px 22px rgba(30,60,90,.08);
+    }
+    .send{
+      width:96px;height:48px;border-radius: 16px;font-weight:1200;
+      background: linear-gradient(180deg, rgba(93,214,255,.78), rgba(255,184,77,.62));
+      border-color: rgba(93,214,255,.25);
+      font-size:13px;
+    }
+
+    .overlay{
+      position:fixed; inset:0;
+      display:none; place-items:center;
+      background: rgba(32,50,69,.25);
+      backdrop-filter: blur(8px);
+      padding:14px;
+      z-index:999;
+    }
+    .modal{
+      width:min(520px, 96vw);
+      border-radius: 20px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 18px 42px rgba(30,60,90,.18);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .modal h2{
+      margin:0 0 8px;
+      font-size:26px;
+      font-weight:1300;
+      letter-spacing:.6px;
+      text-align:center;
+    }
+    .modal p{
+      margin:0 0 10px;
+      color:var(--muted);
+      line-height:1.6;
+      white-space:pre-wrap;
+      font-family:var(--mono);
+      font-size:12px;
+      text-align:center;
+    }
+    .modal .actions{
+      display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:6px;
+    }
+    .modal .endBtn{
+      color:white;border:none;
+      background: linear-gradient(180deg, rgba(123,92,255,.92), rgba(255,77,219,.78));
+      box-shadow: 0 18px 34px rgba(123,92,255,.18);
+      padding:11px 14px; border-radius:14px;
+      font-weight:1200; cursor:pointer;
+    }
+    .modal .secondaryBtn{
+      color:var(--text);
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 14px 26px rgba(30,60,90,.10);
+      padding:11px 14px; border-radius:14px;
+      font-weight:1200; cursor:pointer;
+    }
+    .confetti{
+      position:absolute; inset:-40px; pointer-events:none; opacity:.95; display:none;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255,77,219,.45), transparent 35%),
+        radial-gradient(circle at 82% 22%, rgba(123,92,255,.40), transparent 35%),
+        radial-gradient(circle at 30% 78%, rgba(255,184,77,.40), transparent 40%),
+        radial-gradient(circle at 75% 80%, rgba(37,199,160,.35), transparent 40%);
+      filter: saturate(1.2);
+      animation: confettiPulse 1.2s ease-in-out infinite alternate;
+    }
+    .confetti.show{ display:block; }
+    @keyframes confettiPulse{ from{transform:scale(1)} to{transform:scale(1.04)} }
+    .badge{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:7px 11px; border-radius: 999px;
+      color:white; font-weight:1200;
+      background: linear-gradient(90deg, rgba(123,92,255,.95), rgba(255,77,219,.85), rgba(255,184,77,.78));
+      box-shadow: 0 16px 30px rgba(255,77,219,.18);
+      margin: 6px auto 10px;
+      font-size:12px;
+    }
+
+    .rank{
+      margin-top:10px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:10px 10px 8px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 12px 22px rgba(30,60,90,.08);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align:left;
+    }
+    .rank .rh{
+      display:flex; justify-content:space-between; align-items:center;
+      font-weight:1200; color: var(--text);
+      margin-bottom:6px;
+    }
+    .rank ol{ margin:0; padding-left:18px; }
+    .rank li{ margin:3px 0; }
+    .rank small{ color: var(--muted); }
+
+    .errbar{
+      display:none;
+      padding:10px 12px;
+      border-top:1px solid rgba(255,47,85,.25);
+      background: rgba(255,47,85,.08);
+      color: rgba(140,20,45,.95);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .errbar.show{ display:block; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <div class="h">ザ・折衝</div>
+      <div class="s">Created by HanaSaku / 入力20字 / Enter送信</div>
+    </div>
+    <div class="right">
+      <div class="chip" id="stageChip">STAGE 1 / 3</div>
+      <div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
+      <div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
+      <button class="btn" id="btnRestartTop">やり直し</button>
+    </div>
+  </header>
+
+  <div class="top">
+    <div class="cardsRow">
+      <div class="card arrearsCard">
+        <div class="arrearsRow">
+          <div>
+            <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span></div>
+            <div class="arrearsBig" id="arrearsBig">¥0</div>
+          </div>
+          <div class="chip" style="align-self:flex-start;" id="debtorChip">相手：—</div>
+        </div>
+      </div>
+
+      <div class="card needCard">
+        <div class="needTop">
+          <div>毎月の必要額（総滞納額 ÷ 12）</div>
+          <div class="chip" id="difficultyChip">—</div>
+        </div>
+        <div class="needAmount" id="needAmount">—</div>
+      </div>
+
+      <div class="slotCard" id="slotCard">
+        <div class="slotGlow" id="slotGlow"></div>
+
+        <div class="slotTop">
+          <div>分納スロット</div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <div class="evBig evBad" id="evChip">期待値 — / 勝率 —</div>
+            <div class="slotState chip" id="slotState">未決定</div>
+          </div>
+        </div>
+
+        <div class="slotReadyBanner" id="slotReadyBanner">🎰 分納スロットチャンス！</div>
+
+        <div class="reels">
+          <span class="yenMark">¥</span>
+          <div class="reel" id="r0">—</div>
+          <div class="reel" id="r1">—</div>
+          <div class="reel" id="r2">—</div>
+          <div class="reel" id="r3">—</div>
+          <div class="reel" id="r4">—</div>
+          <div class="reel" id="r5">—</div>
+        </div>
+
+        <div class="slotAmountText" id="slotAmountText">—</div>
+
+        <div class="slotRow">
+          <button class="slotBtn" id="btnSpin">スロット回す</button>
+        </div>
+
+        <div class="progressWrap">
+          <div class="progressTop">
+            <div>交渉進捗</div>
+            <div class="chip" id="progressText">0 / 5</div>
+          </div>
+          <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log" id="log">
+    <div class="stickyDebtor" id="stickyDebtor">
+      <div class="stickyTop">
+        <div>🧾 スロット後の滞納者の返答</div>
+        <div class="chip" id="stickyHint">表示固定</div>
+      </div>
+      <div class="stickyBody" id="stickyBody">—</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="inputRow">
+      <input id="input" type="text" maxlength="20" placeholder="20文字まで（Enter送信）" />
+      <button class="btn send" id="btnSend">送信</button>
+    </div>
+  </footer>
+
+  <div class="errbar" id="errbar"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="confetti" id="confetti"></div>
+    <h2 id="modalTitle">WIN</h2>
+    <div class="badge" id="badge" style="display:none;">✅ 終了</div>
+    <p id="modalText">結果</p>
+
+    <div class="rank" id="rankBox" style="display:none;">
+      <div class="rh">
+        <div>🏆 ローカルランキング（端末内）</div>
+        <button class="btn" id="btnClearRank" style="padding:6px 10px;">消去</button>
+      </div>
+      <ol id="rankList"></ol>
+      <div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
+    </div>
+
+    <div class="actions">
+      <button class="secondaryBtn" id="btnStage">次のステージへ</button>
+      <button class="secondaryBtn" id="btnRetry">このステージやり直し</button>
+      <button class="endBtn" id="btnEnd">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener("error", (e)=>{
+    const el = document.getElementById("errbar");
+    if(!el) return;
+    el.classList.add("show");
+    el.textContent = "JSエラー: " + (e && e.message ? e.message : "unknown") + " / 行: " + (e && e.lineno ? e.lineno : "?");
+  });
+
+  const INPUT_MAX = 20;
+  const PROGRESS_CAP = 5;
+
+  const ME_LABEL = "水道局員";
+  const OTHER_LABEL = "滞納者";
+  const POLICE_LABEL = "警察";
+
+  const STAGES = [
+    { name:"言い訳マン", turns:10, progressNeed:4, arrearsMin:70000,  arrearsMax:260000 },
+    { name:"なんJ民",   turns:9,  progressNeed:4, arrearsMin:140000, arrearsMax:300000 },
+    { name:"陰謀論者", turns:8,  progressNeed:5, arrearsMin:260000, arrearsMax:300000 },
+  ];
+
+  const RANK_KEY = "THE-SETTSHO-RANK-V2";
+  let totalScore = 0;
+  let lastStageScore = 0;
+  let policeCountStage = 0;
+
+  // ===== セリフ調整（なんJ：ネットスラング＆語尾／言い訳マン：他責／陰謀：フラットアース＆都市伝説）=====
+  const JOKE = {
+    spice: {
+      jom: [
+        "それ、役所の説明が悪いと思う。こっちは聞いてない。",
+        "郵送？来てない。ポスト、最近おかしい。",
+        "システムのせいで引落し失敗したって聞いた（たぶん）。",
+        "家主が…管理会社が…って話で止まってる。",
+        "向こうがちゃんと連絡してくれれば、こうならなかった。",
+        "タイミングが悪い。今じゃない、今じゃない。",
+      ],
+      nj: [
+        "草。現実だけが強制イベントやんけ。",
+        "ワイの財布、毎月リスポーン待ちなんやが。",
+        "すまんな、今月だけHP0や。",
+        "それな。支払いの話、胃に来るンゴ。",
+        "ガチで言うと…それは無理寄り。しらんけど。",
+        "通知来た瞬間、詰み演出やめてほしい。",
+        "ワイ、善処する（しない）ンゴ。",
+        "サンガツ…って言いたいけど金は出ないンゴ。",
+      ],
+      con: [
+        "その話、NASA案件だな。数字は“誘導”に使われる。",
+        "南極の“氷の壁”を越えたら答えがある。越えられないけど。",
+        "月はホログラム説ある。だが請求は現実。",
+        "ケムトレイル撒かれてる日に限って財布が軽い。",
+        "5Gのせいで…じゃなくて、支払いの話に戻す。",
+        "都市伝説は好きだが、生活費はオカルトじゃない。",
+      ],
+    },
+    bossWin: [
+      "調子に乗るな。\n勝ち癖は油断の前菜だ。",
+      "よくやった。\nだが次は“もっと面倒”だ。覚悟しろ。",
+      "勝ったからって笑うな。\n笑うなら家で笑え。",
+      "ナイス。\nただし次も同じ顔をするな。腹立つ。",
+      "良い。\nでも次は“現場が狭い家”だ。\n膝から崩れろ。",
+    ],
+    bossFail: [
+      "何してんだ。\n罰ゲーム：想定問答50本ノック。",
+      "反省文A4三枚。\nフォントは気持ち大きめで。",
+      "今日から電卓係。\n総滞納額÷12を一生唱えろ。",
+      "失敗はいい。\n雑なのがダメ。\n明日までに“謝罪の型”暗記。",
+      "帰れ。\n帰って“自分”を洗い直せ。\n（比喩じゃない）",
+    ],
+    ending: [
+      "全案件クリア。\n君は今日も“水”と“現実”をつないだ。\n\n上司：『帰っていい。\n…明日もあるけどな。』",
+      "完全制覇。\n折衝は終わらない。\n\n上司：『休め。\n休んだらまた来い。』",
+      "三連勝。\n今日の君は強い。\n\n上司：『強い日は黙って寝ろ。\n余計な自慢は炎上する。』",
+    ]
+  };
+
+  function personaKey(persona){
+    if(persona==="言い訳マン") return "jom";
+    if(persona==="なんJ民") return "nj";
+    return "con";
+  }
+  function spiceLine(persona){
+    const k = personaKey(persona);
+    return pick(JOKE.spice[k] || ["……。"]);
+  }
+
+  // なんJ：語尾を“時々”だけ付与（ンゴ／しらんけど）
+  function maybeSuffixNJ(line){
+    if(Math.random() < 0.22 && !line.includes("ンゴ")) line += "ンゴ";
+    else if(Math.random() < 0.18 && !line.includes("しらんけど")) line += " しらんけど";
+    return line;
+  }
+
+  const DICT = {
+    greet:   ["こんにちは","こんばんは","おは","おはよう","どうも","やあ","お疲れ","はじめまして"],
+    thanks:  ["ありがとう","助かる","感謝","サンガツ"],
+    sorry:   ["すみません","ごめん","申し訳","悪い","すまん","すまんな"],
+    howare:  ["元気","調子","大丈夫","体調"],
+    weather: ["天気","寒い","暑い","雨","雪","風","花粉"],
+    food:    ["飯","ごはん","ラーメン","うどん","カレー","肉","酒","コンビニ"],
+    work:    ["仕事","残業","休み","会社","職場","上司","公務員","忙しい","いそがしい"],
+    family:  ["家族","子供","嫁","夫","妻","親","母","父"],
+    time:    ["今","今日","明日","週末","夜","昼","朝"],
+
+    hurry: ["急ぐ","急いで","急げ","忙しい","いそがしい","時間ない","時間がない","今すぐ","すぐ","至急","手短に","短く","早く","さっさと"],
+    schedule: ["いつ","期限","締切","今日中","明日","来週","今週","今月","来月","月末","週末","何日","何時","何時まで"],
+
+    money:   ["金","お金","払","支払","料金","請求","滞納","残高","口座","生活","無職","失業","予告","通知","郵送","返戻"],
+    payday: ["給料日","給料","ボーナス","振込日","入金","手取り","生活費"],
+    payment: ["振込","振り込み","口座振替","引落","引き落とし","コンビニ払い","バーコード","領収書","支払方法","払込","払い方"],
+    contact: ["電話","連絡","折り返し","番号","担当","訪問","来た","来訪","また来る","郵送","通知"],
+    excuse: ["忘れた","知らない","聞いてない","無理","きつい","払えない","金ない","詰んだ","病気","入院","失業","リストラ","減給","離婚","家族","子供","介護"],
+
+    split:   ["分割","分納","少しずつ","月","月々","回","一括無理"],
+    pledge:  ["誓約","約束","念書","サイン","署名","延期","猶予"],
+    window:  ["窓口","払いに行って","払いに行く","払ってくる"],
+    water:   ["止水","給水停止","止めます","止めて","止める","水"],
+    threatStop: ["止めるな","止めないで","止めたら","困る","無理だ","生活できない"],
+    relief:  ["減免","減額","免除","相談","申請","制度"],
+    repair:  ["漏水","修理","工事","業者","点検","故障","メーター","メータ","検針"],
+    policy:  ["条例","市長","役所","規則","行政","水道局","予告","通知"],
+
+    // 局員の反証ワード（あなたが打つ用）
+    riverFree: ["川の水","川はタダ","川の水はタダ"],
+    parkWater: ["公園でも水道","公園の水道","公園で水道"],
+    bottleCheaper: ["ペットボトル","ボトルのが安い","ペットボトルのが安い","ペットボトルの方が安い"],
+
+    theft: ["泥棒","盗水","盗む","窃盗"],
+    confused: ["意味がわからない","意味わからん","わからない","分からない","どういう意味","どういうこと","何それ","なにそれ","は？","は?","え？","え?","何言ってる","何いってる"],
+    reject: ["話にならない","帰れ","帰って","帰ってくれ","いらない","知らん","関係ない","もういい","やめろ"],
+    insult:  ["あほ","アホ","ぼけ","ボケ","かす","カス"],
+    violence:["どつく","しばく","なぐる","殴る","脅","殺す"],
+    hardInsult: ["しね","死ね","くたばれ"],
+
+    amountLike: ["円","¥","￥","万","まん"]
+  };
+
+  const POLICE_DELAY = { short: 1100, mid: 1650, long: 2200 };
+
+  const $ = (id)=>document.getElementById(id);
+  const logEl = $("log");
+  const inputEl = $("input");
+  const btnSend = $("btnSend");
+  const btnRestartTop = $("btnRestartTop");
+  const btnSpin = $("btnSpin");
+
+  const stageChip = $("stageChip");
+  const difficultyChip = $("difficultyChip");
+  const turnLeftEl = $("turnLeft");
+  const turnChip = $("turnChip");
+  const scoreChip = $("scoreChip");
+
+  const arrearsBig = $("arrearsBig");
+  const arrearsMonths = $("arrearsMonths");
+  const needAmountEl = $("needAmount");
+  const debtorChip = $("debtorChip");
+
+  const slotCard = $("slotCard");
+  const slotState = $("slotState");
+  const slotReadyBanner = $("slotReadyBanner");
+  const slotAmountText = $("slotAmountText");
+  const evChip = $("evChip");
+  const slotGlow = $("slotGlow");
+  const rEls = [ $("r0"), $("r1"), $("r2"), $("r3"), $("r4"), $("r5") ];
+
+  const stickyDebtor = $("stickyDebtor");
+  const stickyBody = $("stickyBody");
+
+  const overlay = $("overlay");
+  const modalTitle = $("modalTitle");
+  const modalText = $("modalText");
+  const confetti = $("confetti");
+  const badge = $("badge");
+  const btnEnd = $("btnEnd");
+  const btnStage = $("btnStage");
+  const btnRetry = $("btnRetry");
+
+  const rankBox = $("rankBox");
+  const rankList = $("rankList");
+  const btnClearRank = $("btnClearRank");
+
+  const progressText = $("progressText");
+  const progressBar = $("progressBar");
+  const progressBarWrap = $("progressBarWrap");
+
+  let metaGame = { stageIndex: 0 };
+  let state = {
+    turnsLeft: 10,
+    ended: false,
+
+    debtorName: "—",
+
+    arrearsYen: 0,
+    arrearsMonths: 0,
+    needMonthly: 0,
+
+    slotReady: false,
+    slotSpun: false,
+    offeredMonthly: null,
+
+    progressNeed: 4,
+    progress: 0,
+
+    spinning: false,
+    smalltalkCount: 0,
+
+    seenNegotiation: false,
+    talkPower: 0,
+
+    lastDebtorLine: "",
+    lastWinProb: 0,
+    lastEV: 0,
+  };
+
+  init();
+
+  function init(){
+    btnSend.addEventListener("click", (e)=>{ e.preventDefault(); onSend(); });
+    btnRestartTop.addEventListener("click", (e)=>{ e.preventDefault(); restartStage(); });
+    btnSpin.addEventListener("click", (e)=>{ e.preventDefault(); spinSlotDigits(); });
+
+    inputEl.addEventListener("keydown", (ev)=>{
+      if(ev.key === "Enter"){ ev.preventDefault(); onSend(); }
+      if(ev.key === "Escape"){ ev.preventDefault(); inputEl.value=""; }
+    });
+    inputEl.addEventListener("input", ()=>{ inputEl.value = clip(inputEl.value, INPUT_MAX); });
+
+    btnEnd.addEventListener("click", ()=>{ overlay.style.display = "none"; });
+    btnRetry.addEventListener("click", ()=>{
+      overlay.style.display = "none";
+      restartStage();
+    });
+    btnStage.addEventListener("click", ()=>{
+      overlay.style.display = "none";
+      advanceStageOrEnding();
+    });
+
+    btnClearRank.addEventListener("click", ()=>{
+      localStorage.removeItem(RANK_KEY);
+      renderRankBox();
+    });
+
+    loadStage(0);
+    setTimeout(()=> inputEl.focus(), 60);
+  }
+
+  function loadStage(stageIdx){
+    metaGame.stageIndex = clamp(stageIdx, 0, STAGES.length-1);
+    const cfg = STAGES[metaGame.stageIndex];
+
+    policeCountStage = 0;
+    lastStageScore = 0;
+
+    state.turnsLeft = cfg.turns;
+    state.progressNeed = clamp(cfg.progressNeed, 1, PROGRESS_CAP);
+    state.progress = 0;
+    state.smalltalkCount = 0;
+
+    state.ended = false;
+    state.slotReady = false;
+    state.slotSpun = false;
+    state.offeredMonthly = null;
+    state.spinning = false;
+
+    state.seenNegotiation = false;
+    state.talkPower = 0;
+    state.lastDebtorLine = "";
+    state.lastWinProb = 0;
+    state.lastEV = 0;
+
+    state.debtorName = cfg.name;
+
+    state.arrearsMonths = rnd(3, 24);
+    state.arrearsYen = round1000(rnd(cfg.arrearsMin, cfg.arrearsMax));
+    state.arrearsYen = clamp(state.arrearsYen, 1000, 300000);
+    state.needMonthly = Math.ceil(state.arrearsYen / 12 / 100) * 100;
+
+    stageChip.textContent = `STAGE ${metaGame.stageIndex+1} / ${STAGES.length}`;
+    difficultyChip.textContent = `相手：${cfg.name}`;
+    debtorChip.textContent = `相手：${state.debtorName}`;
+
+    logEl.querySelectorAll(".row").forEach(n=>n.remove());
+    stickyDebtor.classList.remove("show");
+    stickyBody.textContent = "—";
+
+    renderTurn(); renderArrears(); renderNeed(); renderProgress();
+    updateSlotReady(false);
+    setReelsFromAmount(null);
+    renderSlot();
+    renderScore();
+    renderRankBox();
+    renderExpectation(true);
+
+    seedOpening();
+    enableInput(true);
+  }
+
+  function restartStage(){ loadStage(metaGame.stageIndex); }
+
+  function advanceStageOrEnding(){
+    if(metaGame.stageIndex >= STAGES.length-1){
+      showOverlay(
+        "ENDING",
+        `${pick(JOKE.ending)}\n\n最終スコア：${totalScore}\nスコアコード：${makeScoreCode()}`,
+        true,
+        true
+      );
+      return;
+    }
+    loadStage(metaGame.stageIndex + 1);
+    setTimeout(()=> inputEl.focus(), 60);
+  }
+
+  function renderTurn(){
+    turnLeftEl.textContent = state.turnsLeft;
+    if(state.turnsLeft <= 2) turnChip.classList.add("danger");
+    else turnChip.classList.remove("danger");
+  }
+  function renderArrears(){
+    arrearsBig.textContent = yen(state.arrearsYen);
+    arrearsMonths.textContent = `滞納 ${state.arrearsMonths}ヶ月`;
+  }
+  function renderNeed(){ needAmountEl.textContent = `${yen(state.needMonthly)} / 月`; }
+
+  function renderProgress(popped=false){
+    const p = Math.min(state.progress, PROGRESS_CAP);
+    const need = state.progressNeed;
+    progressText.textContent = `${Math.min(p, need)} / ${need}`;
+    progressBar.style.width = `${Math.round((Math.min(p, need)/need)*100)}%`;
+    if(popped){
+      progressBarWrap.classList.remove("barPop");
+      void progressBarWrap.offsetWidth;
+      progressBarWrap.classList.add("barPop");
+    }
+  }
+
+  function renderScore(){ scoreChip.textContent = String(totalScore); }
+
+  function renderSlot(){
+    if(state.ended) slotState.textContent = "終了";
+    else if(state.slotSpun) slotState.textContent = "判定済み";
+    else if(state.slotReady) slotState.textContent = "回せる";
+    else slotState.textContent = "未決定";
+
+    btnSpin.disabled = !(state.slotReady && !state.slotSpun && !state.ended && !state.spinning);
+
+    if(!state.slotReady || state.slotSpun || state.ended){
+      slotCard.classList.remove("flash");
+      btnSpin.classList.remove("flash");
+      if(state.slotSpun) slotReadyBanner.classList.remove("show");
+    }
+  }
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function currentSlotParams(){
+    const need = state.needMonthly;
+    const stage = metaGame.stageIndex;
+
+    const baseSpread = 3800 + stage * 1300;
+    const biasDown = (8 - state.talkPower) * (850 + stage * 60);
+    const shiftUp = Math.max(0, state.talkPower - 5) * (720 + stage * 70);
+
+    const shift = shiftUp - Math.max(0, biasDown);
+    const spread = Math.max(2200, baseSpread - state.talkPower * 160);
+
+    let lo = need - spread + shift;
+    let hi = need + spread + shift;
+
+    lo = clamp(lo, 1000, 999900);
+    hi = clamp(hi, 1000, 999900);
+    if(lo > hi) [lo, hi] = [hi, lo];
+
+    return { need, lo, hi };
+  }
+
+  function computeEVandWinProb(){
+    const { need, lo, hi } = currentSlotParams();
+    const ev = Math.round((lo + hi) / 2 / 100) * 100;
+
+    let p;
+    if(hi < need) p = 0;
+    else if(lo >= need) p = 1;
+    else p = (hi - need + 1) / (hi - lo + 1);
+    p = clamp01(p);
+
+    return { ev, p, need, lo, hi };
+  }
+
+  function renderExpectation(silent=false){
+    const { ev, p } = computeEVandWinProb();
+    const pct = Math.round(p * 100);
+
+    const tag =
+      (pct === 0) ? "（今は勝てない）" :
+      (pct < 35) ? "（厳しい）" :
+      (pct < 60) ? "（五分）" :
+      "（勝てる）";
+
+    evChip.textContent = `期待値 ${yen(ev)} / 勝率 ${pct}% ${tag}`;
+
+    if(pct >= 60){
+      evChip.classList.add("evGood");
+      evChip.classList.remove("evBad");
+    }else{
+      evChip.classList.add("evBad");
+      evChip.classList.remove("evGood");
+    }
+
+    if(!silent){
+      const improved = (p > state.lastWinProb + 0.001) || (ev > state.lastEV);
+      if(improved) showSlotGlow();
+    }
+
+    state.lastWinProb = p;
+    state.lastEV = ev;
+  }
+
+  function showSlotGlow(){
+    slotGlow.classList.add("show");
+    setTimeout(()=> slotGlow.classList.remove("show"), 700);
+  }
+
+  function seedOpening(){
+    addMsg("me", `${state.debtorName}さんで、よろしかったでしょうか？`, {tone: ME_LABEL});
+
+    const persona = STAGES[metaGame.stageIndex].name;
+
+    if(persona==="言い訳マン"){
+      addMsg("other", pick([
+        "…はい。\nでも聞いてください、こっちも被害者なんです。",
+        "そうです。\nえ、今日来るって聞いてない。\n連絡、誰が止めたんですか？",
+        "はい…。\n通知？見てない。\n管理会社が回収してた可能性あります。"
+      ]), {tone: OTHER_LABEL});
+    } else if(persona==="なんJ民"){
+      addMsg("other", pick([
+        "せやで。\n名指しで来るの草。\nまあ話は聞くンゴ。",
+        "ワイや。\nでも今、心がHP1や。\n短く頼むンゴ。",
+        "当たり。\nただ無理ゲー額は無理やで。\nしらんけど。"
+      ]), {tone: OTHER_LABEL});
+    } else {
+      addMsg("other", pick([
+        "…そうだ。\n名簿はどこから来た。\nその出どころが“闇”だ。",
+        "合ってる。\nだが“確認”の時点で既に管理されてる。\n南極の氷壁みたいにな。",
+        "そう。\nその呼び方、どこで学んだ？\n都市伝説の入口だぞ。"
+      ]), {tone: OTHER_LABEL});
+    }
+  }
+
+  async function onSend(){
+    if(state.ended || state.spinning) return;
+
+    let text = (inputEl.value || "").trim();
+    if(!text) return;
+    text = clip(text, INPUT_MAX);
+
+    addMsg("me", text, {tone: ME_LABEL});
+    inputEl.value = "";
+    inputEl.focus();
+
+    const hit = detectTopics(text);
+
+    const isNegotiation =
+      hit.money || hit.payday || hit.payment || hit.split || hit.pledge || hit.window || hit.water || hit.relief ||
+      hit.repair || hit.policy || hit.schedule || hit.contact || hasAmountLike(text) || hit.theft ||
+      hit.riverFree || hit.parkWater || hit.bottleCheaper;
+
+    if(isNegotiation) state.seenNegotiation = true;
+
+    if(isNegotiation){
+      let add = 1;
+      if(hit.sorry) add += 1;
+      if(hit.payment || hit.window) add += 2;
+      if(hit.split || hit.pledge) add += 2;
+      if(hit.schedule) add += 1;
+      if(hasAmountLike(text)) add += 2;
+      if(text.includes("予告") || text.includes("通知") || text.includes("郵送") || text.includes("返戻")) add += 2;
+
+      // 局員の“現実的反証”を入れるとtalkPower上がる
+      if(hit.riverFree || hit.parkWater || hit.bottleCheaper) add += 2;
+
+      state.talkPower = clamp(state.talkPower + add, 0, 12);
+    }
+
+    if(hit.theft){
+      await policeInterruptTheft();
+    }
+
+    if(hit.hardInsult){
+      await policeInterrupt(true);
+    } else if(hit.insult || hit.violence){
+      await policeInterrupt(false);
+    }
+
+    state.turnsLeft -= 1;
+    renderTurn();
+
+    if(state.progress < PROGRESS_CAP) state.progress += 1;
+    renderProgress();
+
+    if(text.includes("予告") || text.includes("通知") || text.includes("郵送") || text.includes("返戻")){
+      if(state.progress < PROGRESS_CAP){
+        state.progress += 1;
+        renderProgress(true);
+      } else {
+        renderProgress(true);
+      }
+    }
+
+    renderExpectation(false);
+
+    const reply = await debtorReply(text, hit);
+    addMsg("other", reply, {tone: OTHER_LABEL});
+
+    tryUnlockSlot();
+
+    if(state.turnsLeft <= 0 && !state.ended){
+      endFail("時間切れ。\n分納スロットまで辿り着けなかった。");
+    }
+  }
+
+  function tryUnlockSlot(){
+    if(state.slotReady || state.slotSpun || state.ended) return;
+    if(state.progress >= state.progressNeed && state.seenNegotiation){
+      updateSlotReady(true);
+    }
+  }
+
+  async function policeInterruptTheft(){
+    policeCountStage += 1;
+
+    addMsg("police", "——警察です。", {tone: POLICE_LABEL});
+    await sleep(POLICE_DELAY.short);
+
+    addMsg("police", "『盗水／窃盗』の語が出ました。発言は記録します。", {tone: POLICE_LABEL});
+    await sleep(POLICE_DELAY.mid);
+
+    addMsg("police", "誤解の可能性も含め、ここからは落ち着いて協議してください。", {tone: POLICE_LABEL});
+    await sleep(POLICE_DELAY.mid);
+
+    addMsg("me", "（深呼吸して姿勢を正す）", {tone:"SYS"});
+    await sleep(POLICE_DELAY.short);
+  }
+
+  async function policeInterrupt(isHard){
+    policeCountStage += 1;
+
+    addMsg("police", "——警察です。通報が入りました。", {tone: POLICE_LABEL});
+    await sleep(POLICE_DELAY.mid);
+
+    addMsg("police", "身分確認します。お名前と所属。", {tone: POLICE_LABEL});
+    await sleep(POLICE_DELAY.long);
+
+    addMsg("me", "（身分証を提示）", {tone:"SYS"});
+    await sleep(POLICE_DELAY.mid);
+
+    if(isHard){
+      addMsg("police",
+        "確認しました。\n危険な発言がありました。\nこの場は“記録”されます。\n落ち着いてください。",
+        {tone: POLICE_LABEL}
+      );
+      await sleep(POLICE_DELAY.long);
+
+      addMsg("police",
+        "——そちら（滞納者）。\n危害を示唆する発言はアウトです。\n今後同様なら対応を取ります。\nでは失礼します。",
+        {tone: POLICE_LABEL}
+      );
+      await sleep(POLICE_DELAY.long);
+      return;
+    }
+
+    addMsg("police",
+      "確認しました。\n公務の場での暴言は揉めます。\n（冷静にお願いします）",
+      {tone: POLICE_LABEL}
+    );
+    await sleep(POLICE_DELAY.long);
+
+    addMsg("police",
+      "——そちら（滞納者）。\n協議の場です。\n煽りや茶化しはやめてください。\nでは失礼します。",
+      {tone: POLICE_LABEL}
+    );
+    await sleep(POLICE_DELAY.short);
+  }
+
+  function updateSlotReady(ready){
+    const was = state.slotReady;
+    state.slotReady = ready;
+
+    const slotMsg = "🎰 分納スロットチャンス！\n（残り回数に注意して、折衝を続ければ期待値UP）";
+
+    if(!was && ready && !state.slotSpun){
+      slotCard.classList.add("flash");
+      slotReadyBanner.textContent = slotMsg;
+      slotReadyBanner.classList.add("show");
+      btnSpin.classList.add("flash");
+      addMsg("me", slotMsg, {tone:"SYS"});
+      if(navigator.vibrate) navigator.vibrate([40,30,40,30,90]);
+      slotCard.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+    renderSlot();
+  }
+
+  function setReelsFromAmount(amount){
+    if(amount == null){
+      rEls.forEach(el=> el.textContent = "—");
+      slotAmountText.textContent = "—";
+      return;
+    }
+    const digits = toSixDigits(amount);
+    for(let i=0;i<6;i++) rEls[i].textContent = digits[i];
+    slotAmountText.textContent = `${yen(amount)} / 月`;
+  }
+
+  async function spinSlotDigits(){
+    if(!state.slotReady || state.slotSpun || state.ended || state.spinning) return;
+
+    state.spinning = true;
+    enableInput(false);
+    renderSlot();
+
+    slotState.textContent = "回転中…";
+    slotReadyBanner.textContent = "🎰 分納スロットチャンス！\n（残り回数に注意して、折衝を続ければ期待値UP）";
+    slotReadyBanner.classList.add("show");
+
+    const { lo, hi } = currentSlotParams();
+    let final = round100(rnd(lo, hi));
+    final = clamp(final, 1000, 999900);
+
+    const finalDigits = toSixDigits(final);
+
+    const intervals = [];
+    for(let i=0;i<6;i++){
+      intervals[i] = setInterval(()=>{ rEls[i].textContent = String(rnd(0,9)); }, 55 + i*10);
+    }
+
+    const stopDelays = [650, 1100, 1600, 2150, 2750, 3400];
+    for(let i=0;i<6;i++){
+      await sleep(stopDelays[i] - (i===0?0:stopDelays[i-1]));
+      clearInterval(intervals[i]);
+      rEls[i].textContent = finalDigits[i];
+      if(navigator.vibrate) navigator.vibrate(20);
+    }
+
+    state.offeredMonthly = final;
+    state.slotSpun = true;
+    setReelsFromAmount(final);
+
+    addMsg("me", `（提示：毎月 ${yen(final)}）`, {tone:"SYS"});
+
+    const lastLine = debtorFinalReaction(final);
+    state.lastDebtorLine = lastLine;
+
+    stickyDebtor.classList.add("show");
+    stickyBody.textContent = lastLine;
+
+    addMsg("other", lastLine, {tone: OTHER_LABEL});
+
+    await sleep(1200);
+    judge(final);
+
+    state.spinning = false;
+    renderSlot();
+  }
+
+  function judge(offered){
+    if(state.ended) return;
+    const need = state.needMonthly;
+    if(offered >= need) endWin(offered);
+    else endFail(`提示額が基準未満。\n必要：${yen(need)} / 月\n提示：${yen(offered)} / 月`);
+  }
+
+  function debtorFinalReaction(offered){
+    const persona = STAGES[metaGame.stageIndex].name;
+    const win = offered >= state.needMonthly;
+
+    const s = spiceLine(persona);
+
+    if(persona==="言い訳マン"){
+      const line = win ? pick([
+        `…分かった。\n月${yen(offered)}なら回せる。\n${s}\nでも本当は環境が悪かっただけ。`,
+        `…はい。\n毎月${yen(offered)}で。\n${s}\n今度こそ“相手も”ちゃんとしてくれたら。`
+      ]) : pick([
+        `無理。\n月${yen(offered)}は続かない。\n${s}\nこれで破綻したら誰が責任取るの？`,
+        `…その額は出ない。\n${s}\nいや、出ないようにされてる。`
+      ]);
+      return line;
+    }
+    if(persona==="なんJ民"){
+      let line = win ? pick([
+        `ほな決まりや。\n月${yen(offered)}で行く。\n${s}\nワイ、やるで。`,
+        `それなら現実。\n月${yen(offered)}で締結や。\n${s}\n逃げん。`
+      ]) : pick([
+        `その額は無理や。\n${s}\n続かん。\n詰み。`,
+        `草も生えん。\n${s}\n${yen(offered)}は無茶。`
+      ]);
+      return maybeSuffixNJ(line);
+    }
+    return win ? pick([
+      `…今回は飲む。\n月${yen(offered)}。\n${s}\n“氷の壁”より先に現実が来た。`,
+      `その数字なら成立。\n月${yen(offered)}。\n${s}\nだが記録は残す。`
+    ]) : pick([
+      `無理。\nその数字は“誘導”だ。\n${s}\n生活は計算に入ってない。`,
+      `出ない。\nそれは回収側の都合。\n${s}\n俺は乗らない。`
+    ]);
+  }
+
+  function endWin(offered){
+    state.ended = true;
+    enableInput(false);
+
+    lastStageScore = calcStageScore(offered);
+    totalScore += lastStageScore;
+    renderScore();
+    saveRank(totalScore);
+
+    const code = makeScoreCode();
+    const debtorBlock = state.lastDebtorLine ? `\n\n滞納者：\n${state.lastDebtorLine}` : "";
+
+    showOverlay(
+      "WIN",
+      `必要額：${yen(state.needMonthly)} / 月\n提示：${yen(offered)} / 月\n\nステージ得点：${lastStageScore}\n総合得点：${totalScore}\nスコアコード：${code}\n\n上司：\n${bossWinLine(offered)}\n\n結果：勝利（交渉終了）${debtorBlock}`,
+      true,
+      metaGame.stageIndex >= STAGES.length-1
+    );
+    renderSlot();
+  }
+
+  function endFail(reason){
+    state.ended = true;
+    enableInput(false);
+
+    const code = makeScoreCode();
+    const debtorBlock = state.lastDebtorLine ? `\n\n滞納者：\n${state.lastDebtorLine}` : "";
+
+    showOverlay(
+      "LOSE",
+      `${reason}\n\nステージ得点：0\n総合得点：${totalScore}\nスコアコード：${code}\n\n上司：\n${bossFailLine(reason)}\n\n結果：敗北（交渉終了）${debtorBlock}`,
+      false,
+      false
+    );
+    renderSlot();
+  }
+
+  function showOverlay(title, text, isWin, isFinalWin){
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+
+    badge.style.display = "inline-flex";
+    badge.textContent =
+      title === "ENDING" ? "🎬 完" :
+      isWin ? "✅ 交渉終了（勝利）" : "⛔ 交渉終了（敗北）";
+
+    if(isWin || title === "ENDING") confetti.classList.add("show");
+    else confetti.classList.remove("show");
+
+    renderRankBox();
+
+    if(title === "ENDING"){
+      btnStage.style.display = "none";
+      btnRetry.style.display = "none";
+      btnEnd.style.display = "inline-flex";
+    } else if(isWin){
+      btnStage.style.display = "inline-flex";
+      btnStage.textContent = isFinalWin ? "エンディングへ" : "次のステージへ";
+      btnRetry.style.display = "none";
+      btnEnd.style.display = "none";
+    } else {
+      btnStage.style.display = "none";
+      btnRetry.style.display = "inline-flex";
+      btnEnd.style.display = "none";
+    }
+
+    overlay.style.display = "grid";
+    inputEl.blur();
+  }
+
+  function bossWinLine(offered){
+    const stage = metaGame.stageIndex+1;
+    const persona = STAGES[metaGame.stageIndex].name;
+    const policeNote = policeCountStage>0 ? `\n（警察割り込み：${policeCountStage}回）` : "";
+    return pick(JOKE.bossWin) + `\nSTAGE${stage}（${persona}）\n（提示：${yen(offered)} / 月）${policeNote}`;
+  }
+
+  function bossFailLine(reason){
+    return pick(JOKE.bossFail) + `\n\n【上司メモ】\n${reason}`;
+  }
+
+  function calcStageScore(offered){
+    const need = state.needMonthly;
+    const margin = Math.max(0, offered - need);
+
+    const base = 2500 + metaGame.stageIndex * 700;
+    const speedBonus = state.turnsLeft * 120;
+    const talkBonus = state.talkPower * 90;
+
+    const marginBonus = Math.min(2000, Math.floor(margin / 100) * 6);
+    const policePenalty = policeCountStage * 650;
+
+    return Math.max(0, base + speedBonus + talkBonus + marginBonus - policePenalty);
+  }
+
+  async function debtorReply(userText, hits){
+    const persona = STAGES[metaGame.stageIndex].name;
+
+    const isSmallTalk =
+      hits.greet || hits.thanks || hits.sorry || hits.howare || hits.weather || hits.food || hits.work || hits.family || hits.time;
+
+    const isNegotiation =
+      hits.money || hits.payday || hits.payment || hits.split || hits.pledge || hits.window || hits.water || hits.relief ||
+      hits.repair || hits.policy || hits.schedule || hits.contact || hasAmountLike(userText) || hits.theft ||
+      hits.riverFree || hits.parkWater || hits.bottleCheaper;
+
+    if(isSmallTalk && !isNegotiation) state.smalltalkCount++;
+    else if(isNegotiation) state.smalltalkCount = 0;
+
+    const blocks = [];
+    blocks.push(pickAck(persona, hits));
+
+    if(hits.confused){
+      blocks.push(pickConfusedExplain(persona));
+      blocks.push(makeWordMixLine(persona, hits, pickLikelyUserWords(hits)));
+      blocks.push(spiceLine(persona));
+      await sleep(120 + rnd(0,220));
+      return blocks.filter(Boolean).join("\n");
+    }
+
+    if(hits.reject){
+      blocks.push(pickRejectDeal(persona));
+      blocks.push(makeWordMixLine(persona, hits, pickLikelyUserWords(hits)));
+      blocks.push(spiceLine(persona));
+      await sleep(120 + rnd(0,220));
+      return blocks.filter(Boolean).join("\n");
+    }
+
+    if(isSmallTalk && !isNegotiation){
+      blocks.push(pickSmallTalk(persona, hits));
+      if(state.smalltalkCount >= 2 && !state.slotReady){
+        blocks.push(pickBackToBusiness(persona));
+      } else {
+        blocks.push(pickKeepFlow(persona));
+      }
+      blocks.push(spiceLine(persona));
+      await sleep(120 + rnd(0,220));
+      return blocks.filter(Boolean).join("\n");
+    }
+
+    blocks.push(pickNegotiationCore(persona, hits));
+
+    // 止水系：滞納者の“問い”を頻出させる
+    if(hits.water || hits.threatStop){
+      const q = "止めて死んだらどないするんや？";
+      blocks.push(persona==="なんJ民" ? maybeSuffixNJ(q) : q);
+    }
+
+    // 局員の反証ワードへの反応
+    if(hits.riverFree){
+      blocks.push(persona==="なんJ民"
+        ? maybeSuffixNJ("川の水はタダでも、ワイの胃はタダちゃうぞ。腹壊すンゴ")
+        : persona==="陰謀論者"
+          ? "川は“流れ”がある。流れに乗ると情報も流される。だが飲むのは怖い。"
+          : "川の水は…やめて。体壊したら誰が責任取るの？");
+    }
+    if(hits.parkWater){
+      blocks.push(persona==="なんJ民"
+        ? maybeSuffixNJ("公園の水道？それ税金のやつやろ。ワイも税金払って…ないンゴ")
+        : persona==="陰謀論者"
+          ? "公園の水道は監視カメラの射程だ。使うと“記録”が残る。"
+          : "公園で水道使えって…それ遠回しに追い出してる？");
+    }
+    if(hits.bottleCheaper){
+      blocks.push(persona==="なんJ民"
+        ? maybeSuffixNJ("ペットボトルの方が安い理論、ワイの財布には効く。でも生活はボトルじゃ回らんンゴ")
+        : persona==="陰謀論者"
+          ? "ペットボトルの方が安い…それも“誘導価格”だ。だが背に腹は代えられん。"
+          : "ペットボトルで暮らせって…その発想がもう無理。");
+    }
+
+    if(userText.includes("通知") || userText.includes("郵送") || userText.includes("返戻") || userText.includes("予告")){
+      blocks.push(pick([
+        "……そこまで来てるのか。\nじゃあ、線引きだけはする。",
+        "通知とか言われると、現実が目の前に来る。\n逃げても勝てない。",
+        "郵送の紙って、心が冷える。\nだから“月々”は決める。",
+      ]));
+    }
+
+    blocks.push(makeWordMixLine(persona, hits, pickLikelyUserWords(hits)));
+    blocks.push(spiceLine(persona));
+
+    if(state.slotReady && !state.slotSpun) blocks.push(pickGoSpin(persona));
+
+    await sleep(120 + rnd(0,220));
+    let out = blocks.filter(Boolean).join("\n");
+    if(persona==="なんJ民") out = maybeSuffixNJ(out);
+    return out;
+  }
+
+  function pickAck(persona, h){
+    if(h.hardInsult){
+      if(persona==="なんJ民") return maybeSuffixNJ("それは一線超えや。\n言い方変えよ。");
+      if(persona==="陰謀論者") return "感情は分かる。\nだが発言は残る。";
+      return "その言い方だと進まない。\n落ち着いて。";
+    }
+    if(h.theft){
+      return persona==="なんJ民"
+        ? maybeSuffixNJ("“盗水”とか言うと一気に現場燃えるぞ。\n落ち着こ。")
+        : persona==="陰謀論者"
+          ? "その単語は危険だ。\n“記録”が動く。"
+          : "その言葉はやめて。\nこじれる。";
+    }
+
+    if(h.confused) return persona==="なんJ民"
+      ? maybeSuffixNJ("何が分からん？\n短く言って。")
+      : persona==="陰謀論者"
+        ? "言葉は曖昧だ。\n噛み砕く。"
+        : "分からないなら整理する。";
+
+    if(h.reject) return persona==="なんJ民"
+      ? maybeSuffixNJ("話にならん言う前に落とし所。")
+      : persona==="陰謀論者"
+        ? "拒否は自由。\nだが止水は避けたい。"
+        : "話にならないなら最低限だけ。";
+
+    if(h.greet) return persona==="なんJ民" ? maybeSuffixNJ("ども。") : (persona==="陰謀論者" ? "挨拶はする。" : "こんにちは。");
+    if(h.thanks) return persona==="なんJ民" ? maybeSuffixNJ("サンガツ。") : "…まあ、ありがとう。";
+    if(h.sorry) return persona==="なんJ民" ? maybeSuffixNJ("謝るのは偉い。") : "謝るのは悪くない。";
+    if(h.hurry) return persona==="なんJ民" ? maybeSuffixNJ("急ぐんか。\n短く行く。") : "急いでるなら短く行く。";
+
+    if(h.money || h.payday) return persona==="なんJ民" ? maybeSuffixNJ("金の話は避けられん。") : "金の話は避けられない。";
+    if(h.split) return persona==="なんJ民" ? maybeSuffixNJ("分納は現実。") : "分納は現実的。";
+    if(h.pledge) return "誓約は重い。\n“続く形”だけ。";
+    if(h.water) return persona==="なんJ民" ? maybeSuffixNJ("止水はやめてクレメンス。") : "止水は最終手段。";
+
+    return persona==="なんJ民" ? maybeSuffixNJ("まあ聞くで。") : "話は聞く。";
+  }
+
+  function pickConfusedExplain(persona){
+    if(persona==="なんJ民") return maybeSuffixNJ("噛み砕くで。\n要は“月々いくらなら払えるか”や。");
+    if(persona==="陰謀論者") return "言葉が曖昧だ。\n要点は“月々の線を引く”だけ。";
+    return "短く言う。\n“毎月いくらで続けるか”を決めたい。";
+  }
+
+  function pickRejectDeal(persona){
+    if(persona==="なんJ民") return maybeSuffixNJ("話にならん言う前に。\n“月々の線”だけ決めよ。");
+    if(persona==="陰謀論者") return "拒否は自由。\nだが止水に寄る流れは避けたい。";
+    return "話にならないなら一点だけ。\n月々の線だけ決めたい。";
+  }
+
+  function pickSmallTalk(persona, h){
+    const opts = [];
+    if(h.weather) opts.push(persona==="陰謀論者" ? "天気も“演出”される日がある。" : "天気の話は平和。");
+    if(h.food) opts.push(persona==="なんJ民" ? maybeSuffixNJ("飯は正義。") : "飯の話は嫌いじゃない。");
+    if(h.work) opts.push(persona==="なんJ民" ? maybeSuffixNJ("上司とかいうラスボス。") : "仕事は胃にくる。");
+    if(h.howare) opts.push(persona==="言い訳マン" ? "正直しんどい…。\nいや、周りのせいでしんどい。" : "まあ普通。");
+    if(h.time) opts.push(persona==="なんJ民" ? maybeSuffixNJ("時間だけは平等…嘘や。") : "時間だけは平等って言うけど嘘。");
+    return opts.length ? pick(opts) : (persona==="なんJ民" ? maybeSuffixNJ("雑談は嫌いじゃない。") : "雑談は嫌いじゃない。");
+  }
+
+  function pickBackToBusiness(persona){
+    if(persona==="なんJ民") return maybeSuffixNJ("で、本題や。\n月々どうする？");
+    if(persona==="陰謀論者") return "雑談は終わり。\n数字の線を引く。";
+    return "…そろそろ本題。\n月々の線を決めたい。";
+  }
+  function pickKeepFlow(persona){ return persona==="なんJ民" ? maybeSuffixNJ("まあ続けよ。") : "…うん。"; }
+
+  function pickNegotiationCore(persona, h){
+    if(persona==="言い訳マン"){
+      if(h.split) return "分納なら…いけるかも。\nでも高いのは無理。\nというか、そもそもこうなったの誰のせい？";
+      if(h.window || h.payment) return "窓口は行く。\n…行くけど、担当が前に変な説明したから。\n今日は線を決めたい。";
+      if(h.repair) return "漏水なら修理。\nでも請求が増えたのは設備のせいでしょ。\nこっちは悪くない。";
+      if(h.policy) return "規則は分かる。\nでも運用が雑だった。\nそこ、直してくれないと無理。";
+      if(h.hurry) return "急いでる？\nじゃあ“月々”だけ決める。\n（あと、急かすの怖い）";
+      return "今月だけきつい。\nでも“周り”がちゃんとしてくれたら払える。";
+    }
+
+    if(persona==="なんJ民"){
+      if(h.money || h.payday) return maybeSuffixNJ("現実で決める。\n無理は無理や。");
+      if(h.window || h.payment) return maybeSuffixNJ("窓口？コンビニ？\n方法はええ。\n今日は線引きや。");
+      if(h.policy) return maybeSuffixNJ("規則は分かる。\nでも生活もある。");
+      if(h.hurry) return maybeSuffixNJ("手短に行く。\n“月々”だけ決めよ。");
+      if(h.water) return maybeSuffixNJ("止水カード切るのやめろ。\n死んだらどないするんや？");
+      return maybeSuffixNJ("続く額が正義。\n逃げん。");
+    }
+
+    if(h.policy) return "条例は“看板”。\n運用が本体。";
+    if(h.water || h.threatStop) return "止水は“圧”。\nだが圧は反発を生む。\nだから今決める。";
+    if(h.money) return "数字は誘導に使える。\nだが避け続けると詰む。";
+    if(h.hurry) return "急がせるのは常套手段。\nでも月々の線だけは引く。";
+    return "南極の氷壁みたいに、越えられない壁がある。\nだが数字は必要。";
+  }
+
+  function pickGoSpin(persona){
+    return persona==="なんJ民"
+      ? maybeSuffixNJ("ほな回せ。\n現実見よか。")
+      : persona==="陰謀論者"
+        ? "回せ。\n数字が出たら決める。"
+        : "回して。\nそこで腹を決める。";
+  }
+
+  function pickLikelyUserWords(h){
+    const bag = [];
+    if(h.hurry || h.schedule) bag.push("手短","期限","今日中","今月","来月");
+    if(h.money || h.payday) bag.push("給料日","口座","振込","引落","領収書","通知","郵送");
+    if(h.payment) bag.push("支払方法","コンビニ払い","振込","口座振替");
+    if(h.split) bag.push("分納","分割","月々","回数","誓約");
+    if(h.pledge) bag.push("誓約","念書","署名","延期","猶予");
+    if(h.window) bag.push("窓口","支払方法","コンビニ払い","振込");
+    if(h.water || h.threatStop) bag.push("給水停止","止水","猶予","分納");
+    if(h.relief) bag.push("減免","減額","申請","制度");
+    if(h.repair) bag.push("漏水","修理","業者","メータ");
+    if(h.policy) bag.push("条例","規則","行政","予告","通知","返戻");
+    if(h.theft) bag.push("盗水","泥棒","記録","警察");
+    if(h.riverFree) bag.push("川の水","代替","安全");
+    if(h.parkWater) bag.push("公園","水道","税金");
+    if(h.bottleCheaper) bag.push("ペットボトル","単価","生活費");
+    if(h.confused) bag.push("説明","整理","確認","誓約");
+    if(h.reject) bag.push("最低限","窓口","分納","給水停止");
+    if(h.hardInsult) bag.push("警察","記録","冷静","継続");
+    if(bag.length === 0) bag.push("分納","窓口","誓約","給水停止","減免","通知");
+    const uniq = [...new Set(bag)];
+    shuffleInPlace(uniq);
+    return uniq.slice(0, rnd(2,3));
+  }
+
+  function makeWordMixLine(persona, h, words){
+    const w = words.join("・");
+
+    if(h.confused){
+      return persona==="なんJ民"
+        ? maybeSuffixNJ(`ほな噛み砕く。\n${w}の話だけする。`)
+        : persona==="陰謀論者"
+          ? `意味が不明なら分解する。\n${w}だけ確認。`
+          : `じゃあ整理する。\n${w}だけ先に決めたい。`;
+    }
+
+    if(h.hurry){
+      return persona==="なんJ民"
+        ? maybeSuffixNJ(`急いでるなら${w}だけ詰めよ。\n余計な揉め事は回避。`)
+        : persona==="陰謀論者"
+          ? `急がせるのは常套手段。\nでも${w}だけは確認する。`
+          : `急ぐのは分かる。\nじゃあ${w}だけ先に決めたい。`;
+    }
+
+    if(h.reject){
+      return persona==="なんJ民"
+        ? maybeSuffixNJ(`話にならんって言う前に、${w}だけ決めよ。\nそれで終わる。`)
+        : persona==="陰謀論者"
+          ? `${w}…そこだけは残す。\n止水に寄せないためだ。`
+          : `${w}…そこだけ。\nそれだけ決めたい。`;
+    }
+
+    if(h.money || h.payday || h.payment || h.split || h.pledge || h.window || h.water || h.relief || h.repair || h.policy || h.schedule || h.contact || h.theft || h.riverFree || h.parkWater || h.bottleCheaper){
+      return persona==="なんJ民"
+        ? maybeSuffixNJ(`ワイは${w}あたりで着地したい。\n無理ない線で頼む。`)
+        : persona==="陰謀論者"
+          ? `${w}…その単語が出る時点で流れは決まってる。\nだが生活は守る。`
+          : `${w}…そのへんの話なら現実で落とせる。\n逃げずに決める。`;
+    }
+
+    return `まあ…${w}の話は避けられない。\n落ち着いていこう。`;
+  }
+
+  function addMsg(role, text, meta={}){
+    const row = document.createElement("div");
+    row.className = "row " + (role==="other" ? "other" : role==="police" ? "police" : "me");
+
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = text;
+
+    const m = document.createElement("div");
+    m.className = "meta";
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = meta.tone || (role==="other" ? OTHER_LABEL : role==="police" ? POLICE_LABEL : ME_LABEL);
+    m.appendChild(tag);
+
+    const wrap = document.createElement("div");
+    wrap.appendChild(b);
+    wrap.appendChild(m);
+
+    row.appendChild(wrap);
+    logEl.appendChild(row);
+
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function enableInput(on){
+    inputEl.disabled = !on;
+    btnSend.disabled = !on;
+    btnSend.style.opacity = on ? 1 : .6;
+    btnSend.style.cursor = on ? "pointer" : "not-allowed";
+  }
+
+  function detectTopics(text){
+    const res = {};
+    for(const k in DICT){
+      if(k==="amountLike") continue;
+      res[k] = DICT[k].some(w => text.includes(w));
+    }
+    return res;
+  }
+  function hasAmountLike(text){
+    return DICT.amountLike.some(w=> text.includes(w)) || /\d{3,}/.test(text);
+  }
+
+  function loadRank(){
+    try{ return JSON.parse(localStorage.getItem(RANK_KEY) || "[]"); }
+    catch{ return []; }
+  }
+  function saveRank(score){
+    const list = loadRank();
+    list.push({ score, at: Date.now() });
+    list.sort((a,b)=>b.score-a.score);
+    localStorage.setItem(RANK_KEY, JSON.stringify(list.slice(0,5)));
+    renderRankBox();
+  }
+  function renderRankBox(){
+    const list = loadRank();
+    rankBox.style.display = "block";
+    if(!list.length){
+      rankList.innerHTML = "<li>まだ記録がありません</li>";
+      return;
+    }
+    rankList.innerHTML = list.map((r,i)=>{
+      const d = new Date(r.at);
+      const stamp = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+      return `<li>#${i+1} ${r.score} <small>(${stamp})</small></li>`;
+    }).join("");
+  }
+  function makeScoreCode(){
+    const n = totalScore;
+    const t = Date.now() % 1000000;
+    return `HS-${n}-${t}`;
+  }
+
+  function clip(s,n){ return s.length<=n ? s : s.slice(0,n); }
+  function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function round1000(n){ return Math.round(n/1000)*1000; }
+  function round100(n){ return Math.round(n/100)*100; }
+  function yen(n){ return "¥" + (n|0).toLocaleString("ja-JP"); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+  function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
+  function toSixDigits(amount){
+    const s = String(Math.max(0, Math.min(999999, amount|0))).padStart(6,"0");
+    return s.split("");
+  }
+  function shuffleInPlace(a){
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+  }
+</script>
+</body>
+</html>
