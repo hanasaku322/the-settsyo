@@ -122,9 +122,11 @@
     }
     .arrearsBig{
       margin-top:2px;
-      font-size:26px; font-weight:1200;
-      line-height:1.05; color: var(--danger);
-      text-shadow: 0 10px 20px rgba(255,47,85,.12);
+      font-size:24px;
+      font-weight:1200;
+      line-height:1.1;
+      color: var(--danger);
+      text-shadow: 0 6px 14px rgba(255,47,85,.10);
       letter-spacing: .5px;
     }
 
@@ -133,13 +135,7 @@
       display:flex; justify-content:space-between; align-items:center; gap:10px;
       font-family:var(--mono); font-size:10px; color:var(--muted);
     }
-    .needAmount{
-      margin-top:5px;
-      font-size:18px; font-weight:1200;
-      letter-spacing:.3px;
-      color: rgba(37,199,160,.98);
-      text-shadow: 0 10px 18px rgba(37,199,160,.10);
-    }
+    
 
     .slotCard{
       border:1px solid rgba(123,92,255,.24);
@@ -218,24 +214,27 @@
     .slotGlow.show{ opacity:1; }
 
     .reels{
-      margin-top:8px;
-      display:flex; gap:7px;
-      align-items:center; justify-content:center;
-      flex-wrap:nowrap;
-    }
+  display:flex;
+  gap:14px;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:nowrap;
+}
     .reel{
-      width:40px; height:56px;
-      border-radius: 14px;
-      border: 1px solid rgba(123,92,255,.20);
-      background: linear-gradient(180deg, rgba(123,92,255,.12), rgba(255,77,219,.10));
-      box-shadow: 0 12px 22px rgba(123,92,255,.10);
-      display:flex; align-items:center; justify-content:center;
-      font-family: var(--mono);
-      font-weight: 1200;
-      font-size: 24px;
-      letter-spacing: .4px;
-      user-select:none;
-    }
+  width:56px;
+  height:64px;   /* さらに縦を圧縮 */
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family: var(--mono);
+  font-size:22px;
+  font-weight:1200;
+  color:#2a2f3a;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(241,245,255,.94));
+  border:1px solid rgba(140,160,220,.30);
+  box-shadow: inset 0 8px 14px rgba(170,180,240,.14), 0 6px 14px rgba(90,110,170,.08);
+}
     .yenMark{
       font-family: var(--mono);
       font-weight: 1200;
@@ -250,15 +249,23 @@
       font-size: 11px; color: var(--muted);
     }
 
-    .slotRow{ margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .slotRow{
+      margin-top:14px;
+      display:block;
+      width:100%;
+    }
     .slotBtn{
-      flex:1; min-width: 160px; height:46px;
-      border-radius: 14px;
-      font-weight:1200; font-size:13px; color:white;
-      border: none;
+      width:100%;
+      height:50px;
+      border-radius:14px;
+      font-weight:1200;
+      font-size:14px;
+      color:white;
+      border:none;
       background: linear-gradient(180deg, rgba(123,92,255,.92), rgba(255,77,219,.82));
       box-shadow: 0 16px 30px rgba(123,92,255,.18);
       cursor:pointer;
+      margin-top:6px;
     }
     .slotBtn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
 
@@ -410,7 +417,8 @@
       backdrop-filter: blur(8px);
       padding:14px;
       z-index:999;
-    }
+    
+  overflow:auto; align-items:flex-start; padding-top:40px; }
     .modal{
       width:min(520px, 96vw);
       border-radius: 20px;
@@ -420,7 +428,8 @@
       padding:16px;
       position:relative;
       overflow:hidden;
-    }
+    
+  max-height:90vh; overflow:auto; }
     .modal h2{
       margin:0 0 8px;
       font-size:26px;
@@ -509,14 +518,94 @@
       line-height: 1.4;
     }
     .errbar.show{ display:block; }
-  </style>
+  
+/* ===== 横向き最適化：左チャット / 右UI（基本は変えない） ===== */
+@media (orientation: landscape){
+  body{ padding: 6px; }
+  .app{
+    width: min(980px, 100%);
+    height: calc(100vh - 12px);
+  }
+  /* 2ペイン */
+  .main{
+    flex:1;
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 10px;
+    padding: 10px;
+    overflow:hidden;
+  }
+  .chatPane, .uiPane{
+    border:1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 10px 22px rgba(30,60,90,.06);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .chatPane .log{
+    padding:10px;
+    flex:1;
+    overflow:auto;
+    min-height:0;
+  }
+  .uiPane{
+    padding:10px;
+    overflow:auto;  /* ★右UIは独立スクロール */
+    min-height:0;
+  }
+
+  /* 右UI内の既存ブロックを自然に */
+  .top{ padding:0; border:none; background:transparent; }
+  .cardsRow{ gap:10px; }
+  footer{ display:block; border-top:1px solid var(--border); background: rgba(255,255,255,.78); padding:8px 8px 10px; }
+  .chatPane footer{ position:sticky; bottom:0; z-index:9; }
+  .chatPane .log{ padding-bottom: 12px; }
+  /* 入力はチャット側に表示 */
+  header{ position:sticky; top:0; z-index:10; }
+  .bubble{
+    line-height:1.35;
+    font-size:14px;
+    white-space:pre-line;
+  }
+  /* 視覚的に2連改行を詰める */
+  .bubble br + br{ display:none; }
+  input[type="text"]{ height:46px; font-size:16px; }
+  .send{ height:46px; }
+}
+
+/* ===== 縦向きは従来どおり（上UI→下ログ） ===== */
+
+/* ===== 改行圧縮（横長で見切れ防止） ===== */
+
+.slotLabel,.slotTitle{
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size:12px;
+  font-weight:700;
+  color:#556;
+  padding:6px 12px;
+  border-radius:999px;
+  background: rgba(120,140,170,.10);
+  white-space: nowrap;
+  width:auto;
+  height:auto;
+  margin-right:12px;
+}
+</style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="title">
-      <div class="h">ザ・折衝</div>
-      <div class="s">Created by HanaSaku / 入力20字 / Enter送信</div>
+      <div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
+      
     </div>
     <div class="right">
       <div class="chip" id="stageChip">STAGE 1 / 3</div>
@@ -526,27 +615,41 @@
     </div>
   </header>
 
-  <div class="top">
+  
+  <div class="main">
+    <section class="chatPane">
+      <div class="log" id="log">
+    <div class="stickyDebtor" id="stickyDebtor">
+      <div class="stickyTop">
+        <div>🧾 スロット後の滞納者の返答</div>
+        <div class="chip" id="stickyHint">表示固定</div>
+      </div>
+      <div class="stickyBody" id="stickyBody">—</div>
+    </div>
+  </div>
+      <footer>
+    <div class="inputRow">
+      <input id="input" type="text" maxlength="20" placeholder="20文字まで（Enter送信）" />
+      <button class="btn send" id="btnSend">送信</button>
+    </div>
+  </footer>
+    </section>
+    <aside class="uiPane">
+      <div class="top">
     <div class="cardsRow">
       <div class="card arrearsCard">
         <div class="arrearsRow">
           <div>
             <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span></div>
             <div class="arrearsBig" id="arrearsBig">¥0</div>
+            <div style="margin-top:6px;font-size:13px;font-weight:600;color:#22aa88;">
+              必要額：<span id="needAmount">—</span> / 月
+            </div>
           </div>
           <div class="chip" style="align-self:flex-start;" id="debtorChip">相手：—</div>
         </div>
       </div>
-
-      <div class="card needCard">
-        <div class="needTop">
-          <div>毎月の必要額（総滞納額 ÷ 12）</div>
-          <div class="chip" id="difficultyChip">—</div>
-        </div>
-        <div class="needAmount" id="needAmount">—</div>
-      </div>
-
-      <div class="slotCard" id="slotCard">
+<div class="slotCard" id="slotCard">
         <div class="slotGlow" id="slotGlow"></div>
 
         <div class="slotTop">
@@ -566,42 +669,28 @@
           <div class="reel" id="r2">—</div>
           <div class="reel" id="r3">—</div>
           <div class="reel" id="r4">—</div>
-          <div class="reel" id="r5">—</div>
-        </div>
-
-        <div class="slotAmountText" id="slotAmountText">—</div>
+<div class="slotAmountText" id="slotAmountText">—</div>
 
         <div class="slotRow">
           <button class="slotBtn" id="btnSpin">スロット回す</button>
         </div>
+</div>
+        
+      </div>
+    </div>
 
-        <div class="progressWrap">
-          <div class="progressTop">
-            <div>交渉進捗</div>
-            <div class="chip" id="progressText">0 / 5</div>
-          </div>
-          <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
+      <div class="progressWrap">
+        <div class="progressTop">
+          <div>交渉進捗</div>
+          <div id="progressText">0 / 5</div>
         </div>
+        <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
       </div>
+
     </div>
+    </aside>
   </div>
 
-  <div class="log" id="log">
-    <div class="stickyDebtor" id="stickyDebtor">
-      <div class="stickyTop">
-        <div>🧾 スロット後の滞納者の返答</div>
-        <div class="chip" id="stickyHint">表示固定</div>
-      </div>
-      <div class="stickyBody" id="stickyBody">—</div>
-    </div>
-  </div>
-
-  <footer>
-    <div class="inputRow">
-      <input id="input" type="text" maxlength="20" placeholder="20文字まで（Enter送信）" />
-      <button class="btn send" id="btnSend">送信</button>
-    </div>
-  </footer>
 
   <div class="errbar" id="errbar"></div>
 </div>
@@ -794,7 +883,7 @@
   const slotAmountText = $("slotAmountText");
   const evChip = $("evChip");
   const slotGlow = $("slotGlow");
-  const rEls = [ $("r0"), $("r1"), $("r2"), $("r3"), $("r4"), $("r5") ];
+  const rEls = [ $("r0"), $("r1"), $("r2"), $("r3"), $("r4") ];
 
   const stickyDebtor = $("stickyDebtor");
   const stickyBody = $("stickyBody");
@@ -909,8 +998,8 @@
     state.needMonthly = Math.ceil(state.arrearsYen / 12 / 100) * 100;
 
     stageChip.textContent = `STAGE ${metaGame.stageIndex+1} / ${STAGES.length}`;
-    difficultyChip.textContent = `相手：${cfg.name}`;
-    debtorChip.textContent = `相手：${state.debtorName}`;
+    if(difficultyChip) difficultyChip.textContent = `相手：${cfg.name}`;
+    if(debtorChip) debtorChip.textContent = `相手：${state.debtorName}`;
 
     logEl.querySelectorAll(".row").forEach(n=>n.remove());
     stickyDebtor.classList.remove("show");
@@ -953,12 +1042,12 @@
     arrearsBig.textContent = yen(state.arrearsYen);
     arrearsMonths.textContent = `滞納 ${state.arrearsMonths}ヶ月`;
   }
-  function renderNeed(){ needAmountEl.textContent = `${yen(state.needMonthly)} / 月`; }
+  function renderNeed(){ if(needAmountEl){ needAmountEl.textContent = `${yen(state.needMonthly)}`; } }
 
   function renderProgress(popped=false){
     const p = Math.min(state.progress, PROGRESS_CAP);
     const need = state.progressNeed;
-    progressText.textContent = `${Math.min(p, need)} / ${need}`;
+    if(progressText){ progressText.textContent = `${Math.min(p, need)} / ${need}`; }
     progressBar.style.width = `${Math.round((Math.min(p, need)/need)*100)}%`;
     if(popped){
       progressBarWrap.classList.remove("barPop");
@@ -1227,9 +1316,11 @@
       btnSpin.classList.add("flash");
       addMsg("me", slotMsg, {tone:"SYS"});
       if(navigator.vibrate) navigator.vibrate([40,30,40,30,90]);
-      slotCard.scrollIntoView({behavior:"smooth", block:"center"});
-    }
+      // ★横長画面でチャットが跳ねないよう、scrollIntoViewはしない
+}
     renderSlot();
+    // ★スロット解放でチャットが上に押し上がらないよう末尾を維持
+    setTimeout(()=>{ const log = $("log"); if(log) log.scrollTop = log.scrollHeight; },0);
   }
 
   function setReelsFromAmount(amount){
@@ -1238,8 +1329,8 @@
       slotAmountText.textContent = "—";
       return;
     }
-    const digits = toSixDigits(amount);
-    for(let i=0;i<6;i++) rEls[i].textContent = digits[i];
+    const digits = toFiveDigits(amount);
+    for(let i=0;i<5;i++) rEls[i].textContent = digits[i];
     slotAmountText.textContent = `${yen(amount)} / 月`;
   }
 
@@ -1258,16 +1349,21 @@
     let final = round100(rnd(lo, hi));
     final = clamp(final, 1000, 999900);
 
-    const finalDigits = toSixDigits(final);
+    const finalDigits = toFiveDigits(final);
 
     const intervals = [];
-    for(let i=0;i<6;i++){
-      intervals[i] = setInterval(()=>{ rEls[i].textContent = String(rnd(0,9)); }, 55 + i*10);
+    for(let i=0;i<5;i++){
+      intervals[i] = setInterval(()=>{ rEls[i].textContent = String(rnd(0,9)); }, 85 + i*18);
     }
 
-    const stopDelays = [650, 1100, 1600, 2150, 2750, 3400];
-    for(let i=0;i<6;i++){
-      await sleep(stopDelays[i] - (i===0?0:stopDelays[i-1]));
+    const stopDelays = [900, 1700, 2600, 3700, 5200];
+    for(let idx=4; idx>=0; idx--){
+      const i = idx;           // 停めるリール（下位桁→上位桁）
+      const k = 4 - idx;       // 0→5（遅延は従来どおり増えていく）
+      const prevDelay = (k===0 ? 0 : stopDelays[k-1]);
+      if(k===3){ await sleep(420); } // 直前に少し溜める（最後の2桁）
+      if(k===4){ await sleep(780); } // 最後はさらに溜める
+      await sleep(stopDelays[k] - prevDelay);
       clearInterval(intervals[i]);
       rEls[i].textContent = finalDigits[i];
       if(navigator.vibrate) navigator.vibrate(20);
@@ -1697,6 +1793,7 @@
 
     const b = document.createElement("div");
     b.className = "bubble";
+    text = String(text||"").replace(/\n{2,}/g,"\n");
     b.textContent = text;
 
     const m = document.createElement("div");
@@ -1773,10 +1870,10 @@
   function yen(n){ return "¥" + (n|0).toLocaleString("ja-JP"); }
   function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
   function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
-  function toSixDigits(amount){
-    const s = String(Math.max(0, Math.min(999999, amount|0))).padStart(6,"0");
-    return s.split("");
-  }
+  function toFiveDigits(amount){
+      const s = String(amount).padStart(5,"0").slice(-5);
+      return s.split("");
+    }
   function shuffleInPlace(a){
     for(let i=a.length-1;i>0;i--){
       const j = Math.floor(Math.random()*(i+1));
