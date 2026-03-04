@@ -40,7 +40,7 @@
       padding:6px 8px 5px;
       border-bottom:1px solid var(--border);
       background: rgba(255,255,255,.74);
-      display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
     }
     .title{min-width:0}
     .title .h{font-weight:1100;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -709,13 +709,46 @@
   }
 }
 
+
+/* ===== 横画面で遊ぶ案内（縦画面のときだけ表示） ===== */
+.title .author{
+  font-size:12px;
+  font-weight:600;
+  color:#667;
+  margin-left:8px;
+}
+.title .landscapeNotice{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-left:10px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:900;
+  color:#fff;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(255,77,219,.92), rgba(123,92,255,.92), rgba(255,184,77,.86));
+  box-shadow: 0 12px 22px rgba(123,92,255,.18);
+  text-shadow: 0 10px 20px rgba(0,0,0,.20);
+  user-select:none;
+  animation: landFlash 1.5s ease-in-out infinite;
+}
+@keyframes landFlash{
+  0%{ transform: translateY(0) scale(1); filter:saturate(1); }
+  50%{ transform: translateY(-1px) scale(1.05); filter:saturate(1.18); }
+  100%{ transform: translateY(0) scale(1); filter:saturate(1); }
+}
+@media (orientation: landscape){
+  .title .landscapeNotice{ display:none; }
+}
+
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="title">
-      <div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
+      <div class="h">ザ・折衝 <span class="author">Created by HanaSaku</span><span class="landscapeNotice">📱↔ 横画面で遊んでください</span></div>
       
     </div>
     <div class="right">
@@ -877,6 +910,14 @@
   // === 全国ランキング：名前保存＆ステージ毎自動登録 ===
   const LS_PLAYER_NAME_KEY = "settsyo_player_name";
   const LS_LAST_SUBMIT_STAGE_KEY = "settsyo_global_last_submitted_stage";
+  const LS_LAST_SUBMIT_TOKEN_KEY = "settsyo_global_last_submit_token";
+
+  function getLastSubmitToken(){
+    try{ return (localStorage.getItem(LS_LAST_SUBMIT_TOKEN_KEY) || ""); }catch(e){ return ""; }
+  }
+  function setLastSubmitToken(tok){
+    try{ localStorage.setItem(LS_LAST_SUBMIT_TOKEN_KEY, String(tok||"")); }catch(e){}
+  }
 
   function getSavedPlayerName(){
     try{ return (localStorage.getItem(LS_PLAYER_NAME_KEY) || "").trim(); }catch(e){ return ""; }
@@ -896,8 +937,24 @@
   function setLastSubmittedStage(n){
     try{ localStorage.setItem(LS_LAST_SUBMIT_STAGE_KEY, String(n)); }catch(e){}
   }
+  
   function setGlobalStatus(msg){
     try{ globalStatus.textContent = msg || ""; }catch(e){}
+  }
+
+  function syncGlobalSubmitLock(){
+    try{
+      const stageNo = getStageNumber();
+      const score = Math.max(0, Math.floor(Number(totalScore) || 0));
+      const tok = `${stageNo}:${score}`;
+      if(getLastSubmitToken() === tok){
+        _globalSubmitted = true;
+        _globalSubmittedToken = tok;
+        if(btnSubmitGlobal) btnSubmitGlobal.disabled = true;
+        if(playerNameEl) playerNameEl.disabled = true;
+        setGlobalStatus("登録済みです（このステージは完了）");
+      }
+    }catch(e){}
   }
 
   const SUPABASE_REST = SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE;
@@ -911,6 +968,7 @@
   let _globalReady = false;
   let _globalCanSubmit = false;
   let _globalSubmitted = false;
+  let _globalSubmittedToken = "";
 
   function _supabaseHeaders(extra={}){
     return Object.assign({
@@ -922,18 +980,18 @@
 
   function _safeName(raw){
     const s = (raw || "").trim();
-    // 0〜12文字、改行/タブ除去
     return s.replace(/[\r\n\t]/g,"").slice(0,12);
   }
 
   async function fetchGlobalTop(){
     if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
     try{
-      globalStatus.textContent = "読み込み中…";
-      const url = SUPABASE_REST + "?select=name,score,created_at&order=score.desc&limit=10";
-      const res = await fetch(url, { headers: _supabaseHeaders() });
+      setGlobalStatus("読み込み中…");
+      const url = `${SUPABASE_REST}?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+      const res = await fetch(url, { headers: _supabaseHeaders(), cache:"no-store" });
       if(!res.ok) throw new Error("fetch failed: " + res.status);
       const rows = await res.json();
+
       globalRankList.innerHTML = "";
       if(!rows || rows.length===0){
         const li = document.createElement("li");
@@ -948,9 +1006,9 @@
           globalRankList.appendChild(li);
         });
       }
-      globalStatus.textContent = "";
+      setGlobalStatus("");
     }catch(err){
-      globalStatus.textContent = "全国ランキング取得に失敗（通信エラー）";
+      setGlobalStatus("全国ランキング取得に失敗（通信エラー）");
       console.warn(err);
     }
   }
@@ -958,6 +1016,10 @@
   async function autoSubmitGlobalAtStageEnd(){
     // ステージ終了ごとに自動で全国ランキングへ登録（名前がある場合）
     if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+
+    // 自動登録でも登録を許可
+    setGlobalSubmitEnabled(true);
+    syncGlobalSubmitLock();
 
     // まず表示を更新
     await fetchGlobalTop();
@@ -972,14 +1034,14 @@
     const name = getSavedPlayerName();
     if(!name){
       setGlobalStatus("名前入力して「登録」してください（次回から自動）");
-      try{ globalNameInput.focus(); }catch(e){}
+      try{ playerNameEl.focus(); }catch(e){}
       return;
     }
 
     setGlobalStatus("全国ランキングへ自動登録中…");
     const ok = await submitGlobalScore(name, score);
     if(ok){
-      setLastSubmittedStage(stageNo);
+      // submitGlobalScore 内で last stage/token は保存済み
       await fetchGlobalTop();
     }
   }
@@ -987,7 +1049,7 @@
   async function submitGlobalScore(name, score){
     if(!_globalCanSubmit) return false;
 
-    const safeName = String(name || "").trim().slice(0, 24);
+    const safeName = _safeName(name);
     const safeScore = Math.max(0, Math.floor(Number(score) || 0));
     if(!safeName || safeScore <= 0){
       setGlobalStatus("名前入力して「登録」してください");
@@ -997,22 +1059,32 @@
     // 名前は端末に保存（次回から自動登録できる）
     savePlayerName(safeName);
 
-    // 二重送信ガード（同一画面内）
-    if(_globalSubmitted) return false;
+    // 連打防止：同一ステージ×同一スコアは1回だけ（永続）
+    const stageNo = getStageNumber();
+    const token = `${stageNo}:${safeScore}`;
+    const lastTok = getLastSubmitToken();
+    if(lastTok === token || (_globalSubmitted && _globalSubmittedToken === token)){
+      _globalSubmitted = true;
+      _globalSubmittedToken = token;
+      if(btnSubmitGlobal) btnSubmitGlobal.disabled = true;
+      if(playerNameEl) playerNameEl.disabled = true;
+      setGlobalStatus("登録済みです（このステージは完了）");
+      return false;
+    }
+
+    // 送信中はUIをロック
+    _globalSubmitted = true;
+    _globalSubmittedToken = token;
+    if(btnSubmitGlobal) btnSubmitGlobal.disabled = true;
+    if(playerNameEl) playerNameEl.disabled = true;
 
     const payload = { name: safeName, score: safeScore };
-    _globalSubmitted = true;
     setGlobalStatus("登録中…");
 
     try{
-      const res = await fetch(SUPABASE_URL + "/rest/v1/leaderboard", {
+      const res = await fetch(SUPABASE_REST, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-          "Prefer": "return=minimal"
-        },
+        headers: Object.assign(_supabaseHeaders(), { "Prefer":"return=minimal" }),
         body: JSON.stringify(payload)
       });
 
@@ -1020,9 +1092,18 @@
         const t = await res.text().catch(()=> "");
         console.warn("global insert failed", res.status, t);
         setGlobalStatus("登録に失敗しました（RLS/キー設定を確認）");
+
+        // 失敗時は再試行できるように戻す
         _globalSubmitted = false;
+        _globalSubmittedToken = "";
+        if(btnSubmitGlobal) btnSubmitGlobal.disabled = false;
+        if(playerNameEl) playerNameEl.disabled = false;
         return false;
       }
+
+      // 成功：このステージ×このスコアは以後ブロック
+      setLastSubmitToken(token);
+      setLastSubmittedStage(stageNo);
 
       setGlobalStatus("登録しました！");
       return true;
@@ -1030,11 +1111,12 @@
     }catch(err){
       console.warn("global insert error", err);
       setGlobalStatus("通信エラー：登録できませんでした");
+
       _globalSubmitted = false;
+      _globalSubmittedToken = "";
+      if(btnSubmitGlobal) btnSubmitGlobal.disabled = false;
+      if(playerNameEl) playerNameEl.disabled = false;
       return false;
-    }finally{
-      // 次の登録に備えて少し経ったら解除（連打での爆発を抑える）
-      setTimeout(()=>{ _globalSubmitted = false; }, 1200);
     }
   }
 
@@ -1047,6 +1129,18 @@
       return;
     }
     globalRankBox.style.display = "block";
+
+    // 登録を有効化（ステージ終了時の自動登録も通す）
+    setGlobalSubmitEnabled(true);
+
+    // 保存済みの名前があれば入力欄へ反映
+    try{
+      const saved = getSavedPlayerName();
+      if(saved) playerNameEl.value = saved;
+    }catch(e){}
+
+    // 既に同一ステージ×同一スコアを登録済みならロック
+    syncGlobalSubmitLock();
 
     btnSubmitGlobal.addEventListener("click", ()=>{
       submitGlobalScore(playerNameEl.value, totalScore);
@@ -1065,11 +1159,11 @@
 
   function setGlobalSubmitEnabled(enabled){
     _globalCanSubmit = !!enabled;
-    _globalSubmitted = false;
     if(btnSubmitGlobal) btnSubmitGlobal.disabled = !enabled;
     if(playerNameEl) playerNameEl.disabled = !enabled;
-    if(globalStatus) globalStatus.textContent = enabled ? "" : "（エンディング到達で登録できます）";
+    if(globalStatus) globalStatus.textContent = enabled ? "" : "（登録できません）";
   }
+
 
   let totalScore = 0;
   let lastStageScore = 0;
@@ -1837,7 +1931,7 @@ window.scrollTo({ top: 0, behavior: 'instant' });
     try{
       setupGlobalRankingUI();
       globalRankBox.style.display = "block";
-      refreshGlobalList();
+      fetchGlobalTop();
     }catch(e){}
 
     if(title === "ENDING"){
