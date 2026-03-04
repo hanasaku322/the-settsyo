@@ -442,7 +442,9 @@
       position:relative;
       overflow:hidden;
     
-  max-height:90vh; overflow:auto; }
+  max-height:90vh; overflow:auto; 
+      padding-bottom:14px;
+    }
     .modal h2{
       margin:0 0 8px;
       font-size:26px;
@@ -460,16 +462,18 @@
       text-align:center;
     }
     .modal .actions{
-      display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
-      margin-top:12px;
-      position: sticky;
-      bottom: 0;
-      padding-top:10px;
-      padding-bottom:6px;
-      background: rgba(255,255,255,.94);
-      border-top:1px solid rgba(230,234,240,.9);
-      backdrop-filter: blur(6px);
-      z-index: 2;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      position:sticky;
+      bottom:0;
+      z-index:5;
+      padding:10px 0;
+      background:rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border-top:1px solid rgba(0,0,0,.06);
     }
     .modal .endBtn{
       color:white;border:none;
@@ -622,7 +626,8 @@
 }
 
 /* ✅ やり直しボタンは“削除”せず非表示（JSを壊さないため） */
-#btnRestartTop{ display:none !important; }
+#btnRestartTop{ display:none; }
+    /* #btnRetry は敗北時に表示するため JS 側で制御 */
 
 
     .rankInput{
@@ -637,18 +642,73 @@
     .rankInput:focus{ box-shadow: 0 0 0 3px rgba(64,160,255,.18); }
 
 
-    /* rank-only view (global ranking modal) */
-    #overlay.rankonly #modalTitle,
-    #overlay.rankonly #modalText,
-    #overlay.rankonly .actions,
-    #overlay.rankonly #rankBox{display:none!important;}
-    #overlay.rankonly #globalRankBox{display:block!important;}
-    .miniBtn{
-      border:1px solid #e6eaf0;
-      background:linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.7));
-      padding:6px 10px; border-radius:999px; font-weight:800; font-size:12px;
-      cursor:pointer;
-    }
+/* ===== スマホ縦画面の最低限UI ===== */
+@media (orientation: portrait){
+
+  body{
+    padding:4px;
+  }
+
+  .app{
+    width:100%;
+    height:100vh;
+    border-radius:12px;
+  }
+
+  /* 縦は1カラム */
+  .main{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:6px;
+  }
+
+  .chatPane{
+    order:2;
+    height:40vh;
+  }
+
+  .uiPane{
+    order:1;
+    height:50vh;
+    overflow:auto;
+  }
+
+  /* チャットログ */
+  .chatPane .log{
+    font-size:13px;
+    padding:6px;
+  }
+
+  /* スロット圧縮 */
+  .reel{
+    width:46px;
+    height:52px;
+    font-size:18px;
+  }
+
+  #btnSpin.slotBtn{
+    height:44px;
+    font-size:13px;
+  }
+
+  .evBig{
+    font-size:12px;
+    padding:6px 10px;
+  }
+
+  /* ヘッダー圧縮 */
+  .chip{
+    font-size:8px;
+    padding:3px 6px;
+  }
+
+  .btn{
+    font-size:9px;
+    padding:4px 6px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -662,7 +722,7 @@
       <div class="chip" id="stageChip">STAGE 1 / 3</div>
       <div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
       <div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
-      <button class="btn" id="btnGlobalTop">全国ランキング</button>
+      <button class="btn" id="btnShowGlobalRankingOnly" style="padding:6px 10px;">全国ランキング</button>
       <button class="btn" id="btnRestartTop">やり直し</button>
     </div>
   </header>
@@ -724,7 +784,7 @@
 <div class="slotAmountText" id="slotAmountText">—</div>
 
         <div class="slotRow">
-          <button class="slotBtn" id="btnSpin">スロット回す</button>
+          <button class="slotBtn" id="btnSpin">回す</button>
         </div>
 </div>
         
@@ -754,6 +814,20 @@
     <div class="badge" id="badge" style="display:none;">✅ 終了</div>
     <p id="modalText">結果</p>
 
+    <div class="rank" id="globalRankBox" style="display:none;">
+      <div class="rh">
+        <div>🌐 全国ランキング</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="playerName" class="rankInput" type="text" maxlength="12" placeholder="名前入力して" />
+          <button class="btn" id="btnSubmitGlobal" style="padding:6px 10px;">登録</button>
+        </div>
+      </div>
+      <div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
+      <ol id="globalRankList"></ol>
+      <div style="margin-top:6px;"><small>※各ステージ終了ごとにスコア登録します（初回のみ名前入力）</small></div>
+    </div>
+
+
     <div class="rank" id="rankBox" style="display:none;">
       <div class="rh">
         <div>🏆 ローカルランキング（端末内）</div>
@@ -761,21 +835,6 @@
       </div>
       <ol id="rankList"></ol>
       <div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
-    </div>
-
-
-    <div class="rank" id="globalRankBox" style="display:none;">
-      <div class="rh">
-        <div>🌐 全国ランキング</div>
-        <div class="globalRankControls" style="display:flex; gap:8px; align-items:center;">
-          <button class="btn" id="btnGlobalBack" style="padding:6px 10px;">戻る</button>
-          <input id="playerName" class="rankInput" type="text" maxlength="12" placeholder="名前（例：hana）" />
-          <button class="btn" id="btnSubmitGlobal" style="padding:6px 10px;">登録</button>
-        </div>
-      </div>
-      <div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
-      <ol id="globalRankList"></ol>
-      <div style="margin-top:6px;"><small>※「エンディング」到達時にスコア登録できます</small></div>
     </div>
 
     <div class="actions">
@@ -814,6 +873,33 @@
   // Publishable key（ブラウザOK）
   const SUPABASE_ANON_KEY = "sb_publishable_Y72ghjjIDdBAArc6pjIoLQ_qEPZsKAg";
   const SUPABASE_TABLE = "leaderboard";
+
+  // === 全国ランキング：名前保存＆ステージ毎自動登録 ===
+  const LS_PLAYER_NAME_KEY = "settsyo_player_name";
+  const LS_LAST_SUBMIT_STAGE_KEY = "settsyo_global_last_submitted_stage";
+
+  function getSavedPlayerName(){
+    try{ return (localStorage.getItem(LS_PLAYER_NAME_KEY) || "").trim(); }catch(e){ return ""; }
+  }
+  function savePlayerName(name){
+    try{ localStorage.setItem(LS_PLAYER_NAME_KEY, (name||"").trim()); }catch(e){}
+  }
+  function getStageNumber(){
+    try{ return (metaGame?.stageIndex ?? 0) + 1; }catch(e){ return 1; }
+  }
+  function getLastSubmittedStage(){
+    try{
+      const v = Number(localStorage.getItem(LS_LAST_SUBMIT_STAGE_KEY) || "0");
+      return Number.isFinite(v) ? v : 0;
+    }catch(e){ return 0; }
+  }
+  function setLastSubmittedStage(n){
+    try{ localStorage.setItem(LS_LAST_SUBMIT_STAGE_KEY, String(n)); }catch(e){}
+  }
+  function setGlobalStatus(msg){
+    try{ globalStatus.textContent = msg || ""; }catch(e){}
+  }
+
   const SUPABASE_REST = SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE;
 
   const globalRankBox = document.getElementById("globalRankBox");
@@ -869,59 +955,88 @@
     }
   }
 
-  async function submitGlobalScore(name, score){
-    if(!_globalCanSubmit) { 
-      globalStatus.textContent = "（エンディング到達で登録できます）";
-      return;
-    }
-    if(_globalSubmitted) return;
+  async function autoSubmitGlobalAtStageEnd(){
+    // ステージ終了ごとに自動で全国ランキングへ登録（名前がある場合）
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
 
-    const nm = _safeName(name);
-    if(!nm){
-      globalStatus.textContent = "名前入力して（最大12文字）";
+    // まず表示を更新
+    await fetchGlobalTop();
+
+    const stageNo = getStageNumber();
+    const last = getLastSubmittedStage();
+    if(stageNo <= last) return;
+
+    const score = Math.max(0, Math.floor(Number(totalScore) || 0));
+    if(score <= 0) return;
+
+    const name = getSavedPlayerName();
+    if(!name){
+      setGlobalStatus("名前入力して「登録」してください（次回から自動）");
+      try{ globalNameInput.focus(); }catch(e){}
       return;
     }
-    const sc = Number(score||0);
-    if(!Number.isFinite(sc) || sc<=0){
-      globalStatus.textContent = "スコアが不正です";
-      return;
+
+    setGlobalStatus("全国ランキングへ自動登録中…");
+    const ok = await submitGlobalScore(name, score);
+    if(ok){
+      setLastSubmittedStage(stageNo);
+      await fetchGlobalTop();
     }
+  }
+
+  async function submitGlobalScore(name, score){
+    if(!_globalCanSubmit) return false;
+
+    const safeName = String(name || "").trim().slice(0, 24);
+    const safeScore = Math.max(0, Math.floor(Number(score) || 0));
+    if(!safeName || safeScore <= 0){
+      setGlobalStatus("名前入力して「登録」してください");
+      return false;
+    }
+
+    // 名前は端末に保存（次回から自動登録できる）
+    savePlayerName(safeName);
+
+    // 二重送信ガード（同一画面内）
+    if(_globalSubmitted) return false;
+
+    const payload = { name: safeName, score: safeScore };
+    _globalSubmitted = true;
+    setGlobalStatus("登録中…");
 
     try{
-      btnSubmitGlobal.disabled = true;
-      globalStatus.textContent = "登録中…";
-
-      const payload = { name: nm, score: Math.floor(sc) };
-
-      const res = await fetch(SUPABASE_REST, {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/leaderboard", {
         method: "POST",
         headers: {
-          ..._supabaseHeaders(),
-          "Prefer": "return=representation"
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+          "Prefer": "return=minimal"
         },
         body: JSON.stringify(payload)
       });
 
       if(!res.ok){
-        const txt = await res.text().catch(()=> "");
-        console.error("Global insert failed:", res.status, txt);
-        globalStatus.textContent = `登録失敗（${res.status}）` + (txt ? `: ${txt}` : "");
-        btnSubmitGlobal.disabled = false;
-        return;
+        const t = await res.text().catch(()=> "");
+        console.warn("global insert failed", res.status, t);
+        setGlobalStatus("登録に失敗しました（RLS/キー設定を確認）");
+        _globalSubmitted = false;
+        return false;
       }
 
-      _globalSubmitted = true;
-      globalStatus.textContent = "登録OK！";
-      await fetchGlobalTop();
-      renderGlobalList();
+      setGlobalStatus("登録しました！");
+      return true;
 
     }catch(err){
-      console.error(err);
-      globalStatus.textContent = "登録失敗（通信エラー）";
-      btnSubmitGlobal.disabled = false;
+      console.warn("global insert error", err);
+      setGlobalStatus("通信エラー：登録できませんでした");
+      _globalSubmitted = false;
+      return false;
+    }finally{
+      // 次の登録に備えて少し経ったら解除（連打での爆発を抑える）
+      setTimeout(()=>{ _globalSubmitted = false; }, 1200);
     }
   }
-
 
   function setupGlobalRankingUI(){
     if(_globalReady) return;
@@ -947,53 +1062,6 @@
 
     fetchGlobalTop();
   }
-
-  // --- Global ranking: open as "rank-only" modal from top button ---
-  const btnGlobalTop = document.getElementById("btnGlobalTop");
-  const btnGlobalBack = document.getElementById("btnGlobalBack");
-  const overlayEl = document.getElementById("overlay");
-
-  function openGlobalRankOnly(){
-    if(!overlayEl) return;
-    overlayEl.classList.add("rankonly");
-  try{ const b=document.getElementById("btnGlobalBack"); if(b) b.style.display="inline-flex"; }catch(e){}
-    overlayEl.style.display = "flex";
-    setupGlobalRankingUI();
-    // fetch latest list
-    fetchGlobalTop().catch(()=>{});
-  }
-  function closeGlobalRankOnly(){
-    if(!overlayEl) return;
-    overlayEl.classList.remove("rankonly");
-  try{ const b=document.getElementById("btnGlobalBack"); if(b) b.style.display="none"; }catch(e){}
-    overlayEl.style.display = "none";
-  }
-
-  if(btnGlobalTop){
-    btnGlobalTop.addEventListener("click", (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      openGlobalRankOnly();
-    });
-  }
-  if(btnGlobalBack){
-    // 「全国ランキング」単体モード(トップのボタンから開いた時)だけ戻るを表示
-    try{ btnGlobalBack.style.display = overlayEl.classList.contains("rankonly") ? "inline-flex" : "none"; }catch(e){}
-    btnGlobalBack.addEventListener("click", (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      // just close overlay (doesn't affect progress)
-      closeGlobalRankOnly();
-    });
-  }
-
-
-  // Close rank-only modal when clicking the dim background
-  overlayEl.addEventListener("click", (e)=>{
-    if(!overlayEl.classList.contains("rankonly")) return;
-    if(e.target === overlayEl) closeGlobalRankOnly();
-  });
-
 
   function setGlobalSubmitEnabled(enabled){
     _globalCanSubmit = !!enabled;
@@ -1210,8 +1278,7 @@ const modalTitle = $("modalTitle");
     });
     inputEl.addEventListener("input", ()=>{ inputEl.value = clip(inputEl.value, INPUT_MAX); });
 
-    btnEnd.addEventListener("click", ()=>{
-      document.getElementById("overlay")?.classList.remove("rankonly"); overlay.style.display = "none"; });
+    btnEnd.addEventListener("click", ()=>{ overlay.style.display = "none"; });
     btnRetry.addEventListener("click", ()=>{
       overlay.style.display = "none";
       restartStage();
@@ -1223,13 +1290,7 @@ const modalTitle = $("modalTitle");
 
     btnClearRank.addEventListener("click", ()=>{
       localStorage.removeItem(RANK_KEY);
-      renderRankBox();
-    });
-
-
-    renderRankBox();
-    setupGlobalRankingUI();
-    setGlobalSubmitEnabled(false);
+      renderRankBox();    });
 
     loadStage(0);
     setTimeout(()=> inputEl.focus(), 60);
@@ -1741,7 +1802,6 @@ const modalTitle = $("modalTitle");
 
   function showOverlay(title, text, isWin, isFinalWin){
     
-    try{ overlay.classList.remove("rankonly"); }catch(e){}
     // 🔝 結果画面を必ずトップから見せる（表示後にリセットする）
     const _resetOverlayScroll = () => {
       try{
@@ -1760,11 +1820,7 @@ window.scrollTo({ top: 0, behavior: 'instant' });
     overlay.scrollTop = 0;
     if(modal) modal.scrollTop = 0;
     modalTitle.textContent = title;
-    
-    // enable global score submit only at ENDING
-    setGlobalSubmitEnabled(title === "ENDING");
-    if(title === "ENDING"){ fetchGlobalTop(); }
-modalText.textContent = text;
+    modalText.textContent = text;
 
     badge.style.display = "inline-flex";
     badge.textContent =
@@ -1775,6 +1831,14 @@ modalText.textContent = text;
     else confetti.classList.remove("show");
 
     renderRankBox();
+    // ステージ終了ごとに全国ランキングへ自動登録（名前がある場合）
+    autoSubmitGlobalAtStageEnd();
+    // 交渉終了画面でも全国ランキングを表示
+    try{
+      setupGlobalRankingUI();
+      globalRankBox.style.display = "block";
+      refreshGlobalList();
+    }catch(e){}
 
     if(title === "ENDING"){
       btnStage.style.display = "inline-flex";
@@ -2188,5 +2252,81 @@ const resultObserver = new MutationObserver(() => {
 });
 resultObserver.observe(document.body, { childList: true, subtree: true });
 </script>
+
+<!-- ✅ 全国ランキング（閲覧専用） -->
+<div id="rankOnlyOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.55); overflow:auto; padding:24px 12px;">
+  <div class="modal" style="max-width:560px; margin:0 auto; background:#fff; border-radius:16px; padding:14px; box-shadow:0 20px 50px rgba(0,0,0,.25);">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <div style="font-weight:900; font-size:16px;">🌐 全国ランキング</div>
+      <button class="btn" id="btnCloseRankOnly" style="padding:6px 10px;">戻る</button>
+    </div>
+    <div id="rankOnlyList" style="margin-top:10px;">
+      <div style="opacity:.7">読み込み中…</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ✅ 全国ランキング“閲覧専用”オーバーレイ（ゲームのWIN/次ステージUIとは別）
+document.addEventListener("DOMContentLoaded", () => {
+  const btnOpen = document.getElementById("btnShowGlobalRankingOnly");
+  const ov = document.getElementById("rankOnlyOverlay");
+  const btnClose = document.getElementById("btnCloseRankOnly");
+  const list = document.getElementById("rankOnlyList");
+
+  // 既存のSupabase定数を利用
+  const SB_URL = (typeof SUPABASE_URL !== "undefined") ? SUPABASE_URL : "";
+  const SB_KEY = (typeof SUPABASE_ANON_KEY !== "undefined") ? SUPABASE_ANON_KEY : ((typeof SUPABASE_ANON !== "undefined") ? SUPABASE_ANON : "");
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  async function fetchTop10(){
+    if(!SB_URL || !SB_KEY) throw new Error("Supabase設定が見つかりません");
+    const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+    const res = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }, cache:"no-store" });
+    if(!res.ok){
+      const t = await res.text().catch(()=> "");
+      throw new Error(t || "fetch failed");
+    }
+    return await res.json();
+  }
+
+  function render(rows){
+    const lines = (rows||[]).map((r,i)=>{
+      const nm = esc(r.name ?? "no-name");
+      const sc = Number(r.score ?? 0);
+      return `<div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.06);">
+        <div><b>${i+1}位</b> ${nm}</div>
+        <div style="font-weight:900;">${sc}</div>
+      </div>`;
+    }).join("");
+    list.innerHTML = `<div style="border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden;">${lines || "<div style='padding:10px;opacity:.7'>データなし</div>"}</div>`;
+  }
+
+  async function openRank(){
+    if(!ov || !list) return;
+    ov.style.display = "block";
+    list.innerHTML = "<div style='opacity:.7'>読み込み中…</div>";
+    try{
+      const rows = await fetchTop10();
+      render(rows);
+    }catch(e){
+      list.innerHTML = `<div style="color:#c00;font-weight:800;">読み込み失敗</div><div style="opacity:.7;font-size:12px;">${esc(e.message||"")}</div>`;
+    }
+  }
+  function closeRank(){
+    if(!ov) return;
+    ov.style.display = "none";
+  }
+
+  if(btnOpen) btnOpen.addEventListener("click", openRank);
+  if(btnClose) btnClose.addEventListener("click", closeRank);
+  if(ov) ov.addEventListener("click", closeRank);
+  const m = ov ? ov.querySelector(".modal") : null;
+  if(m) m.addEventListener("click", (e)=>e.stopPropagation());
+});
+</script>
+
 </body>
 </html>
