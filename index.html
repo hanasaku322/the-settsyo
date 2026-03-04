@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="#7b5cff" name="theme-color"/>
-<meta content="yes" name="apple-mobile-web-app-capable"/>
-<title>ザ・折衝 — HanaSaku</title>
-<style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#7b5cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>ザ・折衝 — HanaSaku</title>
+  <style>
     :root{
       --bg1:#fff7fb; --bg2:#f2fbff;
       --text:#203245; --muted:#5b6b7a; --border:#e6eaf0;
@@ -632,119 +631,137 @@
 </head>
 <body>
 <div class="app">
-<header>
-<div class="title">
-<div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
-</div>
-<div class="right">
-<div class="chip" id="stageChip">STAGE 1 / 3</div>
-<div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
-<div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
-<button class="btn" id="btnShowGlobalRankingOnly" style="padding:6px 10px;">全国ランキング</button>
-<button class="btn" id="btnRestartTop">やり直し</button>
-</div>
-</header>
-<div class="main">
-<section class="chatPane">
-<div class="log" id="log">
-<div class="stickyDebtor" id="stickyDebtor">
-<div class="stickyTop">
-<div>🧾 スロット後の滞納者の返答</div>
-<div class="chip" id="stickyHint">表示固定</div>
-</div>
-<div class="stickyBody" id="stickyBody">—</div>
-</div>
-</div>
-<footer>
-<div class="inputRow">
-<input id="input" maxlength="20" placeholder="20文字まで（Enter送信）" type="text"/>
-<button class="btn send" id="btnSend">送信</button>
-</div>
-</footer>
-</section>
-<aside class="uiPane">
-<div class="top">
-<div class="cardsRow">
-<div class="card arrearsCard">
-<div class="arrearsRow">
-<div>
-<div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span> <span class="chip" id="debtorChip" style="margin-left:8px; font-size:9px; padding:4px 7px;">相手：—</span></div>
-<div style="display:flex;align-items:flex-end;gap:20px;">
-<div class="arrearsBig" id="arrearsBig">¥0</div>
-<div style="font-size:16px;font-weight:700;color:#22aa88;white-space:nowrap;">
+  <header>
+    <div class="title">
+      <div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
+      
+    </div>
+    <div class="right">
+      <div class="chip" id="stageChip">STAGE 1 / 3</div>
+      <div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
+      <div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
+      <button class="btn" id="btnRestartTop">やり直し</button>
+    </div>
+  </header>
+
+  
+  <div class="main">
+    <section class="chatPane">
+      <div class="log" id="log">
+    <div class="stickyDebtor" id="stickyDebtor">
+      <div class="stickyTop">
+        <div>🧾 スロット後の滞納者の返答</div>
+        <div class="chip" id="stickyHint">表示固定</div>
+      </div>
+      <div class="stickyBody" id="stickyBody">—</div>
+    </div>
+  </div>
+      <footer>
+    <div class="inputRow">
+      <input id="input" type="text" maxlength="20" placeholder="20文字まで（Enter送信）" />
+      <button class="btn send" id="btnSend">送信</button>
+    </div>
+  </footer>
+    </section>
+    <aside class="uiPane">
+      <div class="top">
+    <div class="cardsRow">
+      <div class="card arrearsCard">
+        <div class="arrearsRow">
+          <div>
+            <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span> <span class="chip" id="debtorChip" style="margin-left:8px; font-size:9px; padding:4px 7px;">相手：—</span></div>
+            <div style="display:flex;align-items:flex-end;gap:20px;">
+              <div class="arrearsBig" id="arrearsBig">¥0</div>
+              <div style="font-size:16px;font-weight:700;color:#22aa88;white-space:nowrap;">
                 必要額：<span id="needAmount">—</span> / 月
             </div>
+          </div>
 </div>
-</div>
-</div>
+      </div>
 <div class="slotCard" id="slotCard">
-<div class="slotGlow" id="slotGlow"></div>
-<div class="slotTop">
-<div></div>
-<div style="display:flex; gap:6px; align-items:center;">
-<div class="evBig evBad" id="evChip">期待値 — / 勝率 —</div>
-<div class="slotState chip" id="slotState">未決定</div>
-</div>
-</div>
-<div class="slotReadyBanner" id="slotReadyBanner">🎰 分納スロットチャンス！</div>
-<div class="reels">
-<span class="yenMark">¥</span>
-<div class="reel" id="r0">—</div>
-<div class="reel" id="r1">—</div>
-<div class="reel" id="r2">—</div>
-<div class="reel" id="r3">—</div>
-<div class="reel" id="r4">—</div>
+        <div class="slotGlow" id="slotGlow"></div>
+
+        <div class="slotTop">
+          <div></div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <div class="evBig evBad" id="evChip">期待値 — / 勝率 —</div>
+            <div class="slotState chip" id="slotState">未決定</div>
+          </div>
+        </div>
+
+        <div class="slotReadyBanner" id="slotReadyBanner">🎰 分納スロットチャンス！</div>
+
+        <div class="reels">
+          <span class="yenMark">¥</span>
+          <div class="reel" id="r0">—</div>
+          <div class="reel" id="r1">—</div>
+          <div class="reel" id="r2">—</div>
+          <div class="reel" id="r3">—</div>
+          <div class="reel" id="r4">—</div>
 <div class="slotAmountText" id="slotAmountText">—</div>
-<div class="slotRow">
-<button class="slotBtn" id="btnSpin">スロット回す</button>
+
+        <div class="slotRow">
+          <button class="slotBtn" id="btnSpin">スロット回す</button>
+        </div>
 </div>
+        
+      </div>
+    </div>
+
+      <div class="progressWrap">
+        <div class="progressTop">
+          <div>交渉進捗</div>
+          <div id="progressText">0 / 5</div>
+        </div>
+        <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
+      </div>
+
+    </div>
+    </aside>
+  </div>
+
+
+  <div class="errbar" id="errbar"></div>
 </div>
-</div>
-</div>
-<div class="progressWrap">
-<div class="progressTop">
-<div>交渉進捗</div>
-<div id="progressText">0 / 5</div>
-</div>
-<div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
-</div>
-</div>
-</div></aside>
-</div>
-<div class="errbar" id="errbar"></div>
-</div>
+
 <div class="overlay" id="overlay">
-<div class="modal">
-<div class="confetti" id="confetti"></div>
-<h2 id="modalTitle">WIN</h2>
-<div class="badge" id="badge" style="display:none;">✅ 終了</div>
-<p id="modalText">結果</p>
-<div class="rank" id="globalRankBox" style="display:block;">
-<div class="rh">
-<div>🌐 全国ランキング</div>
-<div style="display:flex; gap:8px; align-items:center;">
-<input class="rankInput" id="playerName" maxlength="12" placeholder="名前入力して" type="text"/>
-<button class="btn" id="btnSubmitGlobal" style="padding:6px 10px;">登録</button>
+  <div class="modal">
+    <div class="confetti" id="confetti"></div>
+    <h2 id="modalTitle">WIN</h2>
+    <div class="badge" id="badge" style="display:none;">✅ 終了</div>
+    <p id="modalText">結果</p>
+
+    <div class="rank" id="rankBox" style="display:none;">
+      <div class="rh">
+        <div>🏆 ローカルランキング（端末内）</div>
+        <button class="btn" id="btnClearRank" style="padding:6px 10px;">消去</button>
+      </div>
+      <ol id="rankList"></ol>
+      <div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
+    </div>
+
+
+    <div class="rank" id="globalRankBox" style="display:none;">
+      <div class="rh">
+        <div>🌐 全国ランキング</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="playerName" class="rankInput" type="text" maxlength="12" placeholder="名前（例：hana）" />
+          <button class="btn" id="btnSubmitGlobal" style="padding:6px 10px;">登録</button>
+        </div>
+      </div>
+      <div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
+      <ol id="globalRankList"></ol>
+      <div style="margin-top:6px;"><small>※「エンディング」到達時にスコア登録できます</small></div>
+    </div>
+
+    <div class="actions">
+      <button class="secondaryBtn" id="btnStage">次のステージへ</button>
+      <button class="secondaryBtn" id="btnRetry">このステージやり直し</button>
+      <button class="endBtn" id="btnEnd">閉じる</button>
+    </div>
+  </div>
 </div>
-</div>
-<div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
-<ol id="globalRankList"></ol>
-<div style="margin-top:6px;"><small><strong style="color:#ff2f55;">※「エンディング」到達時にスコア登録できます</strong></small></div>
-</div><div class="rank" id="rankBox" style="display:block;">
-<div class="rh">
-<div>🏆 ローカルランキング（端末内）</div>
-<button class="btn" id="btnClearRank" style="padding:6px 10px;">消去</button>
-</div>
-<ol id="rankList"></ol>
-<div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
-</div>
-<div class="actions">
-<button class="secondaryBtn" id="btnStage">次のステージへ</button>
-<button class="secondaryBtn" id="btnRetry">このステージやり直し</button>
-<button class="endBtn" id="btnEnd">閉じる</button>
-</div>
-</div>
-</div>
+
 <script>
   window.addEventListener("error", (e)=>{
     const el = document.getElementById("errbar");
@@ -829,12 +846,15 @@
   }
 
   async function submitGlobalScore(name, score){
-    if(!_globalCanSubmit) return;
+    if(!_globalCanSubmit) { 
+      globalStatus.textContent = "（エンディング到達で登録できます）";
+      return;
+    }
     if(_globalSubmitted) return;
 
     const nm = _safeName(name);
     if(!nm){
-      globalStatus.textContent = "名前を入力してね（最大12文字）";
+      globalStatus.textContent = "名前入力して（最大12文字）";
       return;
     }
     const sc = Number(score||0);
@@ -842,27 +862,42 @@
       globalStatus.textContent = "スコアが不正です";
       return;
     }
+
     try{
       btnSubmitGlobal.disabled = true;
       globalStatus.textContent = "登録中…";
-      const body = JSON.stringify([{ name: nm, score: Math.floor(sc) }]);
+
+      const payload = { name: nm, score: Math.floor(sc) };
+
       const res = await fetch(SUPABASE_REST, {
         method: "POST",
-        headers: _supabaseHeaders({ "Prefer": "return=minimal" }),
-        body
+        headers: {
+          ..._supabaseHeaders(),
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify(payload)
       });
-      if(!res.ok){ const t = await res.text().catch(()=> ""); throw new Error("insert failed: " + res.status + " " + t); }
+
+      if(!res.ok){
+        const txt = await res.text().catch(()=> "");
+        console.error("Global insert failed:", res.status, txt);
+        globalStatus.textContent = `登録失敗（${res.status}）` + (txt ? `: ${txt}` : "");
+        btnSubmitGlobal.disabled = false;
+        return;
+      }
+
       _globalSubmitted = true;
-      globalStatus.textContent = "登録した！";
+      globalStatus.textContent = "登録OK！";
       await fetchGlobalTop();
-    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) fetchGlobalTop(); });
+      renderGlobalList();
+
     }catch(err){
-      console.warn(err);
-      globalStatus.textContent = "登録に失敗（通信エラー）";
-    }finally{
+      console.error(err);
+      globalStatus.textContent = "登録失敗（通信エラー）";
       btnSubmitGlobal.disabled = false;
     }
   }
+
 
   function setupGlobalRankingUI(){
     if(_globalReady) return;
@@ -1117,10 +1152,12 @@ const modalTitle = $("modalTitle");
     btnClearRank.addEventListener("click", ()=>{
       localStorage.removeItem(RANK_KEY);
       renderRankBox();
-    setupGlobalRankingUI();
-    setGlobalSubmitEnabled(title === "ENDING");
-
     });
+
+
+    renderRankBox();
+    setupGlobalRankingUI();
+    setGlobalSubmitEnabled(false);
 
     loadStage(0);
     setTimeout(()=> inputEl.focus(), 60);
@@ -1650,7 +1687,11 @@ window.scrollTo({ top: 0, behavior: 'instant' });
     overlay.scrollTop = 0;
     if(modal) modal.scrollTop = 0;
     modalTitle.textContent = title;
-    modalText.textContent = text;
+    
+    // enable global score submit only at ENDING
+    setGlobalSubmitEnabled(title === "ENDING");
+    if(title === "ENDING"){ fetchGlobalTop(); }
+modalText.textContent = text;
 
     badge.style.display = "inline-flex";
     badge.textContent =
@@ -2074,62 +2115,5 @@ const resultObserver = new MutationObserver(() => {
 });
 resultObserver.observe(document.body, { childList: true, subtree: true });
 </script>
-<div id="rankOnlyOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.55); overflow:auto; padding:24px 12px;"><div class="modal" style="max-width:560px; margin:0 auto; background:#fff; border-radius:16px; padding:14px; box-shadow:0 20px 50px rgba(0,0,0,.25);"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><div style="font-weight:900; font-size:16px;">🌐 全国ランキング</div><button class="btn" id="btnCloseRankOnly" style="padding:6px 10px;">戻る</button></div><div style="margin-top:6px; font-size:12px; color:#556;"></div><div id="rankOnlyList" style="margin-top:10px;"><div style="opacity:.7">読み込み中…</div></div></div></div>
-<script>
-// ✅ 全国ランキング“閲覧専用”オーバーレイ（WIN/次ステージUIとは別物）
-document.addEventListener("DOMContentLoaded", () => {
-  const btnOpen = document.getElementById("btnShowGlobalRankingOnly");
-  const ov = document.getElementById("rankOnlyOverlay");
-  const btnClose = document.getElementById("btnCloseRankOnly");
-  const list = document.getElementById("rankOnlyList");
-
-  const SB_URL = (typeof SUPABASE_URL !== "undefined") ? SUPABASE_URL : (window.SUPABASE_URL || "");
-  const SB_KEY = (typeof SUPABASE_ANON_KEY !== "undefined") ? SUPABASE_ANON_KEY : ((typeof SUPABASE_ANON !== "undefined") ? SUPABASE_ANON : (window.SUPABASE_ANON || ""));
-
-  function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-  async function fetchTop10(){
-    if(!SB_URL || !SB_KEY) throw new Error("Supabase設定が見つかりません");
-    const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
-    const res = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
-    if(!res.ok){
-      const t = await res.text().catch(()=> "");
-      throw new Error(t || "fetch failed");
-    }
-    return await res.json();
-  }
-
-  function render(rows){
-    const lines = (rows||[]).map((r,i)=>{
-      const nm = esc(r.name ?? "no-name");
-      const sc = Number(r.score ?? 0);
-      return `<div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.06);">
-        <div><b>${i+1}位</b> ${nm}</div>
-        <div style="font-weight:900;">${sc}</div>
-      </div>`;
-    }).join("");
-    list.innerHTML = `<div style="border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden;">${lines || "<div style='padding:10px;opacity:.7'>データなし</div>"}</div>`;
-  }
-
-  async function openRank(){
-    ov.style.display = "block";
-    list.innerHTML = "<div style='opacity:.7'>読み込み中…</div>";
-    try{
-      const rows = await fetchTop10();
-      render(rows);
-    }catch(e){
-      list.innerHTML = `<div style="color:#c00;font-weight:800;">読み込み失敗</div><div style="opacity:.7;font-size:12px;">${esc(e.message||"")}</div>`;
-    }
-  }
-  function closeRank(){ ov.style.display = "none"; }
-
-  if(btnOpen) btnOpen.addEventListener("click", openRank);
-  if(btnClose) btnClose.addEventListener("click", closeRank);
-  ov.addEventListener("click", closeRank);
-  const m = ov.querySelector(".modal");
-  if(m) m.addEventListener("click", (e)=>e.stopPropagation());
-});
-</script>
-
 </body>
 </html>
