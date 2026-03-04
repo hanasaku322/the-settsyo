@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#7b5cff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>ザ・折衝 — HanaSaku</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="#7b5cff" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<title>ザ・折衝 — HanaSaku</title>
+<style>
     :root{
       --bg1:#fff7fb; --bg2:#f2fbff;
       --text:#203245; --muted:#5b6b7a; --border:#e6eaf0;
@@ -37,52 +38,64 @@
       box-shadow: var(--shadow);
     }
     header{
-      padding:8px 10px 6px;
+      padding:6px 8px 5px;
       border-bottom:1px solid var(--border);
       background: rgba(255,255,255,.74);
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
     }
     .title{min-width:0}
     .title .h{font-weight:1100;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .title .s{margin-top:2px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);}
-    .right{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    .right{
+      display:flex;
+      gap:5px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
     .chip{
       border:1px solid var(--border);
       background: rgba(255,255,255,.92);
-      padding:5px 9px; border-radius:999px;
+      padding:4px 7px;
+      border-radius:999px;
       white-space:nowrap;
-      font-family:var(--mono); font-size:10px; color:var(--muted);
+      font-family:var(--mono);
+      font-size:9px;
+      color:var(--muted);
     }
     .btn{
       border:1px solid var(--border);
       background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.84));
       color:var(--text);
-      padding:7px 9px; border-radius:12px;
-      cursor:pointer; font-weight:1000; font-size:11px;
+      padding:6px 8px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:1000;
+      font-size:10px;
       box-shadow: 0 10px 20px rgba(30,60,90,.08);
     }
     .btn:active{ transform: translateY(1px); }
 
     .scoreBig{
-      padding:7px 12px;
-      font-size: 12px;
+      padding:6px 9px;
+      font-size: 11px;
       font-weight:1400;
       color: white;
       border:1px solid rgba(255,255,255,.20);
       background: linear-gradient(90deg, rgba(37,199,160,.95), rgba(93,214,255,.90), rgba(255,184,77,.86));
-      box-shadow: 0 18px 34px rgba(93,214,255,.18);
+      box-shadow: 0 14px 26px rgba(93,214,255,.18);
       text-shadow: 0 10px 20px rgba(0,0,0,.14);
       user-select:none;
     }
 
     .turnBig{
-      padding:7px 12px;
-      font-size: 12px;
+      padding:6px 9px;
+      font-size: 11px;
       font-weight:1400;
       color: white;
       border:1px solid rgba(255,255,255,.18);
       background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(255,184,77,.86));
-      box-shadow: 0 18px 34px rgba(255,77,219,.20);
+      box-shadow: 0 14px 26px rgba(255,77,219,.20);
       text-shadow: 0 12px 22px rgba(0,0,0,.18);
       user-select:none;
     }
@@ -147,9 +160,11 @@
       overflow:hidden;
     }
     .slotTop{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      font-family:var(--mono); font-size:10px; color:var(--muted);
-    }
+  display:flex;
+  align-items:center;
+  justify-content:flex-start; /* 左寄せ */
+  gap:10px;
+}
     .slotState{
       padding:3px 9px; border-radius:999px;
       border:1px solid var(--border);
@@ -158,21 +173,17 @@
     }
 
     .evBig{
-      padding:8px 12px;
-      border-radius: 999px;
-      color:white;
-      font-weight:1400;
-      letter-spacing:.25px;
-      font-family: var(--mono);
-      font-size: 12px;
-      border:1px solid rgba(255,255,255,.22);
-      background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(123,92,255,.92));
-      box-shadow: 0 18px 34px rgba(255,77,219,.22);
-      text-shadow: 0 12px 22px rgba(0,0,0,.18);
-      animation: evPulse 1.05s ease-in-out infinite alternate;
-      user-select:none;
-      white-space:nowrap;
-    }
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:1400;
+  color: white; /* 白文字に戻す */
+  border-radius:999px;
+  white-space:nowrap;
+  margin:0;
+  background: linear-gradient(90deg, rgba(255,47,85,.95), rgba(255,77,219,.90), rgba(255,184,77,.86));
+  box-shadow: 0 14px 26px rgba(255,77,219,.20);
+  text-shadow: 0 10px 20px rgba(0,0,0,.25);
+}
     .evGood{
       background: linear-gradient(90deg, rgba(37,199,160,.95), rgba(93,214,255,.90), rgba(255,184,77,.86)) !important;
       box-shadow: 0 18px 34px rgba(93,214,255,.20) !important;
@@ -194,7 +205,8 @@
       font-weight:1200;
       background: linear-gradient(90deg, rgba(123,92,255,.95), rgba(255,77,219,.85), rgba(255,184,77,.75));
       box-shadow: 0 16px 30px rgba(255,77,219,.18);
-      text-align:center;
+      text-align:left;
+      padding-left:14px;
       letter-spacing: .2px;
       font-size:12px;
       white-space:pre-wrap;
@@ -255,18 +267,20 @@
       width:100%;
     }
     .slotBtn{
-      width:100%;
-      height:50px;
-      border-radius:14px;
-      font-weight:1200;
-      font-size:14px;
-      color:white;
-      border:none;
-      background: linear-gradient(180deg, rgba(123,92,255,.92), rgba(255,77,219,.82));
-      box-shadow: 0 16px 30px rgba(123,92,255,.18);
-      cursor:pointer;
-      margin-top:6px;
-    }
+  width:100%;
+  height:50px;
+  border-radius:14px;
+  font-weight:1200;
+  font-size:14px;
+  color:white;
+  border:none;
+  background: linear-gradient(180deg, rgba(123,92,255,.92), rgba(255,77,219,.82));
+  box-shadow: 0 16px 30px rgba(123,92,255,.18);
+  cursor:pointer;
+  margin-top:6px;
+  text-align:left;           /* 左寄せ */
+  padding-left:18px;         /* 少し余白 */
+}
     .slotBtn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
 
     .flash{ animation: flashPop .9s ease-in-out infinite alternate; }
@@ -418,7 +432,7 @@
       padding:14px;
       z-index:999;
     
-  overflow:auto; align-items:flex-start; padding-top:40px; }
+  overflow:auto; align-items:flex-start; padding-top:40px;  overflow:auto; }
     .modal{
       width:min(520px, 96vw);
       border-radius: 20px;
@@ -598,127 +612,139 @@
   height:auto;
   margin-right:12px;
 }
+
+/* ✅ やり直しボタンは“削除”せず非表示（JSを壊さないため） */
+#btnRestartTop, #btnRetry{ display:none !important; }
+
+
+    .rankInput{
+      width:140px;
+      padding:8px 10px;
+      border:1px solid rgba(30,60,90,.18);
+      border-radius:12px;
+      outline:none;
+      background: rgba(255,255,255,.85);
+      font-size:14px;
+    }
+    .rankInput:focus{ box-shadow: 0 0 0 3px rgba(64,160,255,.18); }
+
 </style>
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="title">
-      <div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
-      
-    </div>
-    <div class="right">
-      <div class="chip" id="stageChip">STAGE 1 / 3</div>
-      <div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
-      <div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
-      <button class="btn" id="btnRestartTop">やり直し</button>
-    </div>
-  </header>
-
-  
-  <div class="main">
-    <section class="chatPane">
-      <div class="log" id="log">
-    <div class="stickyDebtor" id="stickyDebtor">
-      <div class="stickyTop">
-        <div>🧾 スロット後の滞納者の返答</div>
-        <div class="chip" id="stickyHint">表示固定</div>
-      </div>
-      <div class="stickyBody" id="stickyBody">—</div>
-    </div>
-  </div>
-      <footer>
-    <div class="inputRow">
-      <input id="input" type="text" maxlength="20" placeholder="20文字まで（Enter送信）" />
-      <button class="btn send" id="btnSend">送信</button>
-    </div>
-  </footer>
-    </section>
-    <aside class="uiPane">
-      <div class="top">
-    <div class="cardsRow">
-      <div class="card arrearsCard">
-        <div class="arrearsRow">
-          <div>
-            <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span></div>
-            <div class="arrearsBig" id="arrearsBig">¥0</div>
-            <div style="margin-top:6px;font-size:13px;font-weight:600;color:#22aa88;">
-              必要額：<span id="needAmount">—</span> / 月
+<header>
+<div class="title">
+<div class="h">ザ・折衝 <span style="font-size:12px;font-weight:500;color:#667;margin-left:8px;">Created by HanaSaku</span> <span style="font-size:11px;font-weight:500;color:#667;"></span></div>
+</div>
+<div class="right">
+<div class="chip" id="stageChip">STAGE 1 / 3</div>
+<div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
+<div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
+<button class="btn" id="btnShowGlobalRankingOnly" style="padding:6px 10px;">全国ランキング</button>
+<button class="btn" id="btnRestartTop">やり直し</button>
+</div>
+</header>
+<div class="main">
+<section class="chatPane">
+<div class="log" id="log">
+<div class="stickyDebtor" id="stickyDebtor">
+<div class="stickyTop">
+<div>🧾 スロット後の滞納者の返答</div>
+<div class="chip" id="stickyHint">表示固定</div>
+</div>
+<div class="stickyBody" id="stickyBody">—</div>
+</div>
+</div>
+<footer>
+<div class="inputRow">
+<input id="input" maxlength="20" placeholder="20文字まで（Enter送信）" type="text"/>
+<button class="btn send" id="btnSend">送信</button>
+</div>
+</footer>
+</section>
+<aside class="uiPane">
+<div class="top">
+<div class="cardsRow">
+<div class="card arrearsCard">
+<div class="arrearsRow">
+<div>
+<div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span> <span class="chip" id="debtorChip" style="margin-left:8px; font-size:9px; padding:4px 7px;">相手：—</span></div>
+<div style="display:flex;align-items:flex-end;gap:20px;">
+<div class="arrearsBig" id="arrearsBig">¥0</div>
+<div style="font-size:16px;font-weight:700;color:#22aa88;white-space:nowrap;">
+                必要額：<span id="needAmount">—</span> / 月
             </div>
-          </div>
-          <div class="chip" style="align-self:flex-start;" id="debtorChip">相手：—</div>
-        </div>
-      </div>
+</div>
+</div>
+</div>
 <div class="slotCard" id="slotCard">
-        <div class="slotGlow" id="slotGlow"></div>
-
-        <div class="slotTop">
-          <div>分納スロット</div>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <div class="evBig evBad" id="evChip">期待値 — / 勝率 —</div>
-            <div class="slotState chip" id="slotState">未決定</div>
-          </div>
-        </div>
-
-        <div class="slotReadyBanner" id="slotReadyBanner">🎰 分納スロットチャンス！</div>
-
-        <div class="reels">
-          <span class="yenMark">¥</span>
-          <div class="reel" id="r0">—</div>
-          <div class="reel" id="r1">—</div>
-          <div class="reel" id="r2">—</div>
-          <div class="reel" id="r3">—</div>
-          <div class="reel" id="r4">—</div>
+<div class="slotGlow" id="slotGlow"></div>
+<div class="slotTop">
+<div></div>
+<div style="display:flex; gap:6px; align-items:center;">
+<div class="evBig evBad" id="evChip">期待値 — / 勝率 —</div>
+<div class="slotState chip" id="slotState">未決定</div>
+</div>
+</div>
+<div class="slotReadyBanner" id="slotReadyBanner">🎰 分納スロットチャンス！</div>
+<div class="reels">
+<span class="yenMark">¥</span>
+<div class="reel" id="r0">—</div>
+<div class="reel" id="r1">—</div>
+<div class="reel" id="r2">—</div>
+<div class="reel" id="r3">—</div>
+<div class="reel" id="r4">—</div>
 <div class="slotAmountText" id="slotAmountText">—</div>
-
-        <div class="slotRow">
-          <button class="slotBtn" id="btnSpin">スロット回す</button>
-        </div>
+<div class="slotRow">
+<button class="slotBtn" id="btnSpin">スロット回す</button>
 </div>
-        
-      </div>
-    </div>
-
-      <div class="progressWrap">
-        <div class="progressTop">
-          <div>交渉進捗</div>
-          <div id="progressText">0 / 5</div>
-        </div>
-        <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
-      </div>
-
-    </div>
-    </aside>
-  </div>
-
-
-  <div class="errbar" id="errbar"></div>
 </div>
-
+</div>
+</div>
+<div class="progressWrap">
+<div class="progressTop">
+<div>交渉進捗</div>
+<div id="progressText">0 / 5</div>
+</div>
+<div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
+</div>
+</div>
+</div></aside>
+</div>
+<div class="errbar" id="errbar"></div>
+</div>
 <div class="overlay" id="overlay">
-  <div class="modal">
-    <div class="confetti" id="confetti"></div>
-    <h2 id="modalTitle">WIN</h2>
-    <div class="badge" id="badge" style="display:none;">✅ 終了</div>
-    <p id="modalText">結果</p>
-
-    <div class="rank" id="rankBox" style="display:none;">
-      <div class="rh">
-        <div>🏆 ローカルランキング（端末内）</div>
-        <button class="btn" id="btnClearRank" style="padding:6px 10px;">消去</button>
-      </div>
-      <ol id="rankList"></ol>
-      <div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
-    </div>
-
-    <div class="actions">
-      <button class="secondaryBtn" id="btnStage">次のステージへ</button>
-      <button class="secondaryBtn" id="btnRetry">このステージやり直し</button>
-      <button class="endBtn" id="btnEnd">閉じる</button>
-    </div>
-  </div>
+<div class="modal">
+<div class="confetti" id="confetti"></div>
+<h2 id="modalTitle">WIN</h2>
+<div class="badge" id="badge" style="display:none;">✅ 終了</div>
+<p id="modalText">結果</p>
+<div class="rank" id="globalRankBox" style="display:block;">
+<div class="rh">
+<div>🌐 全国ランキング</div>
+<div style="display:flex; gap:8px; align-items:center;">
+<input class="rankInput" id="playerName" maxlength="12" placeholder="名前入力して" type="text"/>
+<button class="btn" id="btnSubmitGlobal" style="padding:6px 10px;">登録</button>
 </div>
-
+</div>
+<div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
+<ol id="globalRankList"></ol>
+<div style="margin-top:6px;"><small><strong style="color:#ff2f55;">※「エンディング」到達時にスコア登録できます</strong></small></div>
+</div><div class="rank" id="rankBox" style="display:block;">
+<div class="rh">
+<div>🏆 ローカルランキング（端末内）</div>
+<button class="btn" id="btnClearRank" style="padding:6px 10px;">消去</button>
+</div>
+<ol id="rankList"></ol>
+<div style="margin-top:6px;"><small>※スコアコードを見せ合って競えます（サーバ不要）</small></div>
+</div>
+<div class="actions">
+<button class="secondaryBtn" id="btnStage">次のステージへ</button>
+<button class="secondaryBtn" id="btnRetry">このステージやり直し</button>
+<button class="endBtn" id="btnEnd">閉じる</button>
+</div>
+</div>
+</div>
 <script>
   window.addEventListener("error", (e)=>{
     const el = document.getElementById("errbar");
@@ -741,6 +767,136 @@
   ];
 
   const RANK_KEY = "THE-SETTSHO-RANK-V2";
+
+  // === Supabase（全国ランキング）設定 ===
+  const SUPABASE_URL = "https://pczoruixyeuzohjoskje.supabase.co";
+  // Publishable key（ブラウザOK）
+  const SUPABASE_ANON_KEY = "sb_publishable_Y72ghjjIDdBAArc6pjIoLQ_qEPZsKAg";
+  const SUPABASE_TABLE = "leaderboard";
+  const SUPABASE_REST = SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE;
+
+  const globalRankBox = document.getElementById("globalRankBox");
+  const globalRankList = document.getElementById("globalRankList");
+  const globalStatus = document.getElementById("globalStatus");
+  const playerNameEl = document.getElementById("playerName");
+  const btnSubmitGlobal = document.getElementById("btnSubmitGlobal");
+
+  let _globalReady = false;
+  let _globalCanSubmit = false;
+  let _globalSubmitted = false;
+
+  function _supabaseHeaders(extra={}){
+    return Object.assign({
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+    }, extra);
+  }
+
+  function _safeName(raw){
+    const s = (raw || "").trim();
+    // 0〜12文字、改行/タブ除去
+    return s.replace(/[\r\n\t]/g,"").slice(0,12);
+  }
+
+  async function fetchGlobalTop(){
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+    try{
+      globalStatus.textContent = "読み込み中…";
+      const url = SUPABASE_REST + "?select=name,score,created_at&order=score.desc&limit=10";
+      const res = await fetch(url, { headers: _supabaseHeaders() });
+      if(!res.ok) throw new Error("fetch failed: " + res.status);
+      const rows = await res.json();
+      globalRankList.innerHTML = "";
+      if(!rows || rows.length===0){
+        const li = document.createElement("li");
+        li.textContent = "まだ登録がありません";
+        globalRankList.appendChild(li);
+      }else{
+        rows.forEach((r, i)=>{
+          const li = document.createElement("li");
+          const nm = (r && r.name) ? r.name : "no-name";
+          const sc = (r && typeof r.score==="number") ? r.score : 0;
+          li.textContent = `${i+1}位  ${nm}  ${sc}`;
+          globalRankList.appendChild(li);
+        });
+      }
+      globalStatus.textContent = "";
+    }catch(err){
+      globalStatus.textContent = "全国ランキング取得に失敗（通信エラー）";
+      console.warn(err);
+    }
+  }
+
+  async function submitGlobalScore(name, score){
+    if(!_globalCanSubmit) return;
+    if(_globalSubmitted) return;
+
+    const nm = _safeName(name);
+    if(!nm){
+      globalStatus.textContent = "名前を入力してね（最大12文字）";
+      return;
+    }
+    const sc = Number(score||0);
+    if(!Number.isFinite(sc) || sc<=0){
+      globalStatus.textContent = "スコアが不正です";
+      return;
+    }
+    try{
+      btnSubmitGlobal.disabled = true;
+      globalStatus.textContent = "登録中…";
+      const body = JSON.stringify({ name: nm, score: Math.floor(sc) });
+      const res = await fetch(SUPABASE_REST, {
+        method: "POST",
+        headers: _supabaseHeaders({ "Prefer": "return=minimal" }),
+        body
+      });
+      if(!res.ok) throw new Error("insert failed: " + res.status);
+      _globalSubmitted = true;
+      globalStatus.textContent = "登録した！";
+      await fetchGlobalTop();
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) fetchGlobalTop(); });
+    }catch(err){
+      console.warn(err);
+      globalStatus.textContent = "登録に失敗（通信エラー）";
+    }finally{
+      btnSubmitGlobal.disabled = false;
+    }
+  }
+
+  function setupGlobalRankingUI(){
+    if(_globalReady) return;
+    _globalReady = true;
+
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+      globalRankBox.style.display = "none";
+      return;
+    }
+    globalRankBox.style.display = "block";
+
+    btnSubmitGlobal.addEventListener("click", ()=>{
+      submitGlobalScore(playerNameEl.value, totalScore);
+    });
+
+    // Enterでも登録（入力中のEnterが送信扱いになるのを避ける）
+    playerNameEl.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        submitGlobalScore(playerNameEl.value, totalScore);
+      }
+    });
+
+    fetchGlobalTop();
+  }
+
+  function setGlobalSubmitEnabled(enabled){
+    _globalCanSubmit = !!enabled;
+    _globalSubmitted = false;
+    if(btnSubmitGlobal) btnSubmitGlobal.disabled = !enabled;
+    if(playerNameEl) playerNameEl.disabled = !enabled;
+    if(globalStatus) globalStatus.textContent = enabled ? "" : "（エンディング到達で登録できます）";
+  }
+
   let totalScore = 0;
   let lastStageScore = 0;
   let policeCountStage = 0;
@@ -889,7 +1045,8 @@
   const stickyBody = $("stickyBody");
 
   const overlay = $("overlay");
-  const modalTitle = $("modalTitle");
+    const modal = overlay.querySelector('.modal');
+const modalTitle = $("modalTitle");
   const modalText = $("modalText");
   const confetti = $("confetti");
   const badge = $("badge");
@@ -960,6 +1117,9 @@
     btnClearRank.addEventListener("click", ()=>{
       localStorage.removeItem(RANK_KEY);
       renderRankBox();
+    setupGlobalRankingUI();
+    setGlobalSubmitEnabled(title === "ENDING");
+
     });
 
     loadStage(0);
@@ -967,6 +1127,7 @@
   }
 
   function loadStage(stageIdx){
+  window.scrollTo({ top: 0, behavior: 'instant' });
     metaGame.stageIndex = clamp(stageIdx, 0, STAGES.length-1);
     const cfg = STAGES[metaGame.stageIndex];
 
@@ -1470,6 +1631,24 @@
   }
 
   function showOverlay(title, text, isWin, isFinalWin){
+    
+    // 🔝 結果画面を必ずトップから見せる（表示後にリセットする）
+    const _resetOverlayScroll = () => {
+      try{
+        window.scrollTo(0,0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }catch(e){}
+      try{ overlay.scrollTop = 0; }catch(e){}
+      try{
+        const m = overlay.querySelector('.modal');
+        if(m) m.scrollTop = 0;
+      }catch(e){}
+    };
+window.scrollTo({ top: 0, behavior: 'instant' });
+    // overlay内スクロールも先頭へ
+    overlay.scrollTop = 0;
+    if(modal) modal.scrollTop = 0;
     modalTitle.textContent = title;
     modalText.textContent = text;
 
@@ -1484,9 +1663,11 @@
     renderRankBox();
 
     if(title === "ENDING"){
-      btnStage.style.display = "none";
+      btnStage.style.display = "inline-flex";
+      btnStage.textContent = "最初から遊ぶ";
       btnRetry.style.display = "none";
-      btnEnd.style.display = "inline-flex";
+      btnEnd.style.display = "none";
+      btnStage.onclick = ()=>{ location.reload(); };
     } else if(isWin){
       btnStage.style.display = "inline-flex";
       btnStage.textContent = isFinalWin ? "エンディングへ" : "次のステージへ";
@@ -1499,6 +1680,9 @@
     }
 
     overlay.style.display = "grid";
+    _resetOverlayScroll();
+    requestAnimationFrame(_resetOverlayScroll);
+    setTimeout(_resetOverlayScroll, 60);
     inputEl.blur();
   }
 
@@ -1848,13 +2032,13 @@
     rankBox.style.display = "block";
     if(!list.length){
       rankList.innerHTML = "<li>まだ記録がありません</li>";
-      return;
+    }else{
+      rankList.innerHTML = list.map((r,i)=>{
+        const d = new Date(r.at);
+        const stamp = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+        return `<li>#${i+1} ${r.score} <small>(${stamp})</small></li>`;
+      }).join("");
     }
-    rankList.innerHTML = list.map((r,i)=>{
-      const d = new Date(r.at);
-      const stamp = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
-      return `<li>#${i+1} ${r.score} <small>(${stamp})</small></li>`;
-    }).join("");
   }
   function makeScoreCode(){
     const n = totalScore;
@@ -1880,6 +2064,72 @@
       [a[i],a[j]]=[a[j],a[i]];
     }
   }
+
+// 強制トップ表示（結果バナー表示時）
+const resultObserver = new MutationObserver(() => {
+  const resultEl = document.getElementById('resultScreen') || document.getElementById('resultBanner');
+  if(resultEl && resultEl.style.display !== 'none'){
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+});
+resultObserver.observe(document.body, { childList: true, subtree: true });
 </script>
+<div id="rankOnlyOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.55); overflow:auto; padding:24px 12px;"><div class="modal" style="max-width:560px; margin:0 auto; background:#fff; border-radius:16px; padding:14px; box-shadow:0 20px 50px rgba(0,0,0,.25);"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><div style="font-weight:900; font-size:16px;">🌐 全国ランキング</div><button class="btn" id="btnCloseRankOnly" style="padding:6px 10px;">戻る</button></div><div style="margin-top:6px; font-size:12px; color:#556;">※閲覧のみ（ここから次のステージには進みません）</div><div id="rankOnlyList" style="margin-top:10px;"><div style="opacity:.7">読み込み中…</div></div></div></div>
+<script>
+// ✅ 全国ランキング“閲覧専用”オーバーレイ（WIN/次ステージUIとは別物）
+document.addEventListener("DOMContentLoaded", () => {
+  const btnOpen = document.getElementById("btnShowGlobalRankingOnly");
+  const ov = document.getElementById("rankOnlyOverlay");
+  const btnClose = document.getElementById("btnCloseRankOnly");
+  const list = document.getElementById("rankOnlyList");
+
+  const SB_URL = (typeof SUPABASE_URL !== "undefined") ? SUPABASE_URL : (window.SUPABASE_URL || "");
+  const SB_KEY = (typeof SUPABASE_ANON_KEY !== "undefined") ? SUPABASE_ANON_KEY : ((typeof SUPABASE_ANON !== "undefined") ? SUPABASE_ANON : (window.SUPABASE_ANON || ""));
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  async function fetchTop10(){
+    if(!SB_URL || !SB_KEY) throw new Error("Supabase設定が見つかりません");
+    const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+    const res = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+    if(!res.ok){
+      const t = await res.text().catch(()=> "");
+      throw new Error(t || "fetch failed");
+    }
+    return await res.json();
+  }
+
+  function render(rows){
+    const lines = (rows||[]).map((r,i)=>{
+      const nm = esc(r.name ?? "no-name");
+      const sc = Number(r.score ?? 0);
+      return `<div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.06);">
+        <div><b>${i+1}位</b> ${nm}</div>
+        <div style="font-weight:900;">${sc}</div>
+      </div>`;
+    }).join("");
+    list.innerHTML = `<div style="border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden;">${lines || "<div style='padding:10px;opacity:.7'>データなし</div>"}</div>`;
+  }
+
+  async function openRank(){
+    ov.style.display = "block";
+    list.innerHTML = "<div style='opacity:.7'>読み込み中…</div>";
+    try{
+      const rows = await fetchTop10();
+      render(rows);
+    }catch(e){
+      list.innerHTML = `<div style="color:#c00;font-weight:800;">読み込み失敗</div><div style="opacity:.7;font-size:12px;">${esc(e.message||"")}</div>`;
+    }
+  }
+  function closeRank(){ ov.style.display = "none"; }
+
+  if(btnOpen) btnOpen.addEventListener("click", openRank);
+  if(btnClose) btnClose.addEventListener("click", closeRank);
+  ov.addEventListener("click", closeRank);
+  const m = ov.querySelector(".modal");
+  if(m) m.addEventListener("click", (e)=>e.stopPropagation());
+});
+</script>
+
 </body>
 </html>
