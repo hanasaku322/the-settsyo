@@ -799,28 +799,61 @@
     return s.replace(/[\r\n\t]/g,"").slice(0,12);
   }
 
-  async function fetchGlobalTop(){
-    if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
-    try{
-      globalStatus.textContent = "読み込み中…";
-      const url = SUPABASE_REST + "?select=name,score,created_at&order=score.desc&limit=10";
-      const res = await fetch(url, { headers: _supabaseHeaders() });
-      if(!res.ok) throw new Error("fetch failed: " + res.status);
-      const rows = await res.json();
-      globalRankList.innerHTML = "";
-      if(!rows || rows.length===0){
-        const li = document.createElement("li");
-        li.textContent = "まだ登録がありません";
-        globalRankList.appendChild(li);
-      }else{
-        rows.forEach((r, i)=>{
-          const li = document.createElement("li");
-          const nm = (r && r.name) ? r.name : "no-name";
-          const sc = (r && typeof r.score==="number") ? r.score : 0;
-          li.textContent = `${i+1}位  ${nm}  ${sc}`;
-          globalRankList.appendChild(li);
-        });
+  async function fetchGlobalTop() {
+    const list = document.getElementById("globalList");
+    if (!list) return;
+
+    // cache対策：毎回必ず最新を取りに行く
+    list.innerHTML = '<div class="muted">読み込み中…</div>';
+
+    const esc = (s) => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      list.innerHTML = '<div class="muted">設定がありません</div>';
+      return;
+    }
+
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Cache-Control": "no-cache"
+        },
+        cache: "no-store"
+      });
+
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || `HTTP ${res.status}`);
       }
+
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) {
+        list.innerHTML = '<div class="muted">まだ登録がありません</div>';
+        return;
+      }
+
+      list.innerHTML = rows.map((r, i) => {
+        const rank = i + 1;
+        const name = esc(r.name);
+        const score = Number(r.score ?? 0).toLocaleString("ja-JP");
+        return `<div class="gRow"><span class="gRank">${rank}</span><span class="gName">${name}</span><span class="gScore">${score}</span></div>`;
+      }).join("");
+    } catch (e) {
+      const msg = (e && e.message) ? e.message : String(e);
+      list.innerHTML = `<div class="muted">取得失敗：${esc(msg)}</div>`;
+    }
+  }
       globalStatus.textContent = "";
     }catch(err){
       globalStatus.textContent = "全国ランキング取得に失敗（通信エラー）";
@@ -828,15 +861,53 @@
     }
   }
 
-  async function submitGlobalScore(name, score){
-    if(!_globalCanSubmit) return;
-    if(_globalSubmitted) return;
+  async function submitGlobalScore(name, score) {
+    if(!_globalCanSubmit) return false;
+    if(_globalSubmitted) return false;
 
-    const nm = _safeName(name);
-    if(!nm){
-      globalStatus.textContent = "名前を入力してね（最大12文字）";
-      return;
+    const status = document.getElementById("globalStatus");
+    const safeStatus = (msg)=>{ if(status) status.textContent = msg; };
+
+    const n = String(name ?? "").trim();
+    if(!n){ safeStatus("名前を入力して"); return false; }
+    if(n.length > 16){ safeStatus("名前は16文字まで"); return false; }
+
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+      safeStatus("設定がありません");
+      return false;
     }
+
+    safeStatus("送信中…");
+
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+        method:"POST",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type":"application/json",
+          Accept:"application/json",
+          Prefer:"return=minimal",
+          "Cache-Control":"no-cache"
+        },
+        cache:"no-store",
+        body: JSON.stringify({ name: n, score: Number(score ?? 0) })
+      });
+
+      if(!res.ok){
+        const msg = await res.text().catch(()=> "");
+        throw new Error(msg || `HTTP ${res.status}`);
+      }
+
+      _globalSubmitted = true;
+      safeStatus("登録しました！");
+      await fetchGlobalTop();
+      return true;
+    }catch(e){
+      safeStatus("登録に失敗：" + ((e && e.message) ? e.message : String(e)));
+      return false;
+    }
+  }
     const sc = Number(score||0);
     if(!Number.isFinite(sc) || sc<=0){
       globalStatus.textContent = "スコアが不正です";
@@ -2108,7 +2179,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="font-weight:900;">${sc}</div>
       </div>`;
     }).join("");
-    list.innerHTML = `<div style="border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden;">${lines || "<div style='padding:10px;opacity:.7'>データなし</div>"}</div>`;
+    list.innerHTML = `<div style="border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden;">${lines || "<div style='padding:10px;opacity:.7'>読み込み中…</div>"}</div>`;
   }
 
   async function openRank(){
