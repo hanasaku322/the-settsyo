@@ -742,6 +742,24 @@
   .title .landscapeNotice{ display:none; }
 }
 
+
+/* === Global Ranking visuals === */
+#globalRankList li.rank1{
+  color:#FFD700;
+  font-weight:900;
+  animation:rankGlow 1.4s ease-in-out infinite alternate;
+}
+@keyframes rankGlow{
+  from{ text-shadow:0 0 5px rgba(255,215,0,.6); }
+  to{ text-shadow:0 0 22px rgba(255,215,0,.95); }
+}
+#globalRankList li.you{
+  background:rgba(255,120,0,0.14);
+  border-radius:10px;
+  padding:6px 8px;
+  font-weight:900;
+}
+
 </style>
 </head>
 <body>
@@ -857,7 +875,18 @@
       </div>
       <div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
       <ol id="globalRankList"></ol>
+
+      <div id="globalPlayerStats" style="margin-top:10px;padding-top:10px;border-top:1px solid #e6eaf0;font-weight:800;">
+        🔥 あなたの順位：<span id="globalMyRank">--</span>位　
+        ⭐ 自己ベスト：<span id="globalMyBest">0</span>点
+      </div>
+
       <div style="margin-top:6px;"><small>※各ステージ終了ごとにスコア登録します（初回のみ名前入力）</small></div>
+    </div>
+
+    <div id="endPlayerStats" style="display:none;margin-top:12px;padding:12px;border-top:2px solid #e6eaf0;font-weight:900;">
+      🔥 あなたの順位：<span id="endMyRank">--</span>位<br>
+      ⭐ 自己ベスト：<span id="endMyBest">0</span>点
     </div>
 
 
@@ -987,7 +1016,7 @@
     if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
     try{
       setGlobalStatus("読み込み中…");
-      const url = `${SUPABASE_REST}?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+      const url = `${SUPABASE_REST}?select=name,score,created_at&order=score.desc,created_at.asc&limit=20`;
       const res = await fetch(url, { headers: _supabaseHeaders(), cache:"no-store" });
       if(!res.ok) throw new Error("fetch failed: " + res.status);
       const rows = await res.json();
@@ -1002,7 +1031,15 @@
           const li = document.createElement("li");
           const nm = (r && r.name) ? r.name : "no-name";
           const sc = (r && typeof r.score==="number") ? r.score : 0;
-          li.textContent = `${i+1}位  ${nm}  ${sc}`;
+          const crown = (i===0)?"🥇":(i===1)?"🥈":(i===2)?"🥉":`${i+1}位`;
+          li.textContent = `${crown}  ${nm}  ${sc}`;
+          if(i===0) li.classList.add("rank1");
+          // 自分のスコア行を軽くハイライト（同点で複数ある場合もOK）
+          try{
+            if(typeof totalScore !== "undefined" && sc === totalScore){
+              li.classList.add("you");
+            }
+          }catch(e){}
           globalRankList.appendChild(li);
         });
       }
@@ -1023,6 +1060,7 @@
 
     // まず表示を更新
     await fetchGlobalTop();
+      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
 
     const stageNo = getStageNumber();
     const last = getLastSubmittedStage();
@@ -1043,6 +1081,7 @@
     if(ok){
       // submitGlobalScore 内で last stage/token は保存済み
       await fetchGlobalTop();
+      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
     }
   }
 
@@ -1155,6 +1194,7 @@
     });
 
     fetchGlobalTop();
+      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
   }
 
   function setGlobalSubmitEnabled(enabled){
@@ -1265,6 +1305,8 @@
     relief:  ["減免","減額","免除","相談","申請","制度"],
     repair:  ["漏水","修理","工事","業者","点検","故障","メーター","メータ","検針"],
     policy:  ["条例","市長","役所","規則","行政","水道局","予告","通知"],
+    notice: ["予告","通知","督促","催告"],
+    mail: ["郵送","返戻","封筒","ポスト"],
 
     // 局員の反証ワード（あなたが打つ用）
     riverFree: ["川の水","川はタダ","川の水はタダ"],
@@ -1932,6 +1974,7 @@ window.scrollTo({ top: 0, behavior: 'instant' });
       setupGlobalRankingUI();
       globalRankBox.style.display = "block";
       fetchGlobalTop();
+      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
     }catch(e){}
 
     if(title === "ENDING"){
@@ -2028,7 +2071,34 @@ window.scrollTo({ top: 0, behavior: 'instant' });
       return blocks.filter(Boolean).join("\n");
     }
 
+    
     blocks.push(pickNegotiationCore(persona, hits));
+
+    // ★神アップデート：キーワード反応の“言い訳パンチ”
+    function __keywordPunch(){
+      if(hits.money && (hits.notice || userText.includes("通知") || userText.includes("予告"))){
+        return persona==="なんJ民" ? "通知は見た。見たけど心が未ログインや。" : "通知？見ました。でもメンタルが“既読”拒否しました。";
+      }
+      if(hits.payment){
+        return persona==="陰謀論者" ? "支払いは“現実”を固定する儀式…だがやる。" : "払う気はある！あるけど財布が覚悟を決めてない！";
+      }
+      if(hits.split){
+        return "分納なら…人類にも優しい選択肢やと思う。";
+      }
+      if(hits.water || hits.threatStop){
+        return persona==="なんJ民" ? "止水は文明終了やんけ。やめてクレメンス。" : "止水は勘弁してください。生活が詰みます。";
+      }
+      if(hits.theft || userText.includes("盗水")){
+        return persona==="陰謀論者" ? "盗水じゃない。水の方が来た。“選ばれた”んだ。" : "盗水ちゃう！水が勝手に入ってきただけ！";
+      }
+      if(userText.includes("郵送") || userText.includes("返戻")){
+        return "郵送？来てない。ポストが最近やる気ない。";
+      }
+      return "";
+    }
+    const kp = __keywordPunch();
+    if(kp) blocks.push(kp);
+
 
     // 止水系：滞納者の“問い”を頻出させる
     if(hits.water || hits.threatStop){
@@ -2345,6 +2415,73 @@ const resultObserver = new MutationObserver(() => {
   }
 });
 resultObserver.observe(document.body, { childList: true, subtree: true });
+
+// ===== Ranking UI Enhancements =====
+function decorateRanking(list){
+  if(!list) return;
+  const rows=list.querySelectorAll("li, .row, tr");
+  rows.forEach((r,i)=>{
+    let crown="";
+    if(i===0) crown="🥇 ";
+    else if(i===1) crown="🥈 ";
+    else if(i===2) crown="🥉 ";
+    if(crown){
+      const el=r.querySelector(".rank")||r.firstChild;
+      if(el && !r.dataset.crowned){
+        r.dataset.crowned="1";
+        r.innerHTML = crown + r.innerHTML;
+      }
+    }
+  });
+}
+
+// 自己ベスト
+function updateBest(score){
+  const best = Number(localStorage.getItem("settsyo_best")||0);
+  if(score>best){
+    localStorage.setItem("settsyo_best",score);
+  }
+}
+
+// 自分の順位表示
+function showMyRank(name,score,data){
+  if(!data||!data.length) return;
+  const sorted=[...data].sort((a,b)=>b.score-a.score);
+  const idx=sorted.findIndex(x=>x.name===name && x.score===score);
+  if(idx>=0){
+    let box=document.getElementById("myRankBox");
+    if(!box){
+      box=document.createElement("div");
+      box.id="myRankBox";
+      box.style.fontWeight="700";
+      box.style.marginTop="6px";
+      const rankBox=document.getElementById("globalRankBox");
+      if(rankBox) rankBox.appendChild(box);
+    }
+    box.innerHTML="🔥 あなたの順位: "+(idx+1)+"位";
+  }
+}
+
+// ランキング演出
+function enhanceRankingUI(data){
+  const list=document.querySelector("#globalRankBox ul, #globalRankBox ol");
+  decorateRanking(list);
+
+  const best=localStorage.getItem("settsyo_best");
+  if(best){
+    let bestEl=document.getElementById("bestScoreBox");
+    if(!bestEl){
+      bestEl=document.createElement("div");
+      bestEl.id="bestScoreBox";
+      bestEl.style.fontWeight="700";
+      bestEl.style.marginTop="6px";
+      const rankBox=document.getElementById("globalRankBox");
+      if(rankBox) rankBox.appendChild(bestEl);
+    }
+    bestEl.innerHTML="⭐ 自己ベスト: "+best;
+  }
+}
+
 </script>
 
 <!-- ✅ 全国ランキング（閲覧専用） -->
@@ -2368,6 +2505,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ov = document.getElementById("rankOnlyOverlay");
   const btnClose = document.getElementById("btnCloseRankOnly");
   const list = document.getElementById("rankOnlyList");
+  const stats = document.getElementById("rankOnlyStats");
 
   // 既存のSupabase定数を利用
   const SB_URL = (typeof SUPABASE_URL !== "undefined") ? SUPABASE_URL : "";
@@ -2375,9 +2513,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  async function fetchTop10(){
+  async function fetchTop20(){
     if(!SB_URL || !SB_KEY) throw new Error("Supabase設定が見つかりません");
-    const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=10`;
+    const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=20`;
     const res = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }, cache:"no-store" });
     if(!res.ok){
       const t = await res.text().catch(()=> "");
@@ -2403,7 +2541,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ov.style.display = "block";
     list.innerHTML = "<div style='opacity:.7'>読み込み中…</div>";
     try{
-      const rows = await fetchTop10();
+      const rows = await fetchTop20();
       render(rows);
     }catch(e){
       list.innerHTML = `<div style="color:#c00;font-weight:800;">読み込み失敗</div><div style="opacity:.7;font-size:12px;">${esc(e.message||"")}</div>`;
@@ -2420,6 +2558,154 @@ document.addEventListener("DOMContentLoaded", () => {
   const m = ov ? ov.querySelector(".modal") : null;
   if(m) m.addEventListener("click", (e)=>e.stopPropagation());
 });
+
+// ===== Ranking UI Enhancements =====
+function decorateRanking(list){
+  if(!list) return;
+  const rows=list.querySelectorAll("li, .row, tr");
+  rows.forEach((r,i)=>{
+    let crown="";
+    if(i===0) crown="🥇 ";
+    else if(i===1) crown="🥈 ";
+    else if(i===2) crown="🥉 ";
+    if(crown){
+      const el=r.querySelector(".rank")||r.firstChild;
+      if(el && !r.dataset.crowned){
+        r.dataset.crowned="1";
+        r.innerHTML = crown + r.innerHTML;
+      }
+    }
+  });
+}
+
+// 自己ベスト
+function updateBest(score){
+  const best = Number(localStorage.getItem("settsyo_best")||0);
+  if(score>best){
+    localStorage.setItem("settsyo_best",score);
+  }
+}
+
+// 自分の順位表示
+function showMyRank(name,score,data){
+  if(!data||!data.length) return;
+  const sorted=[...data].sort((a,b)=>b.score-a.score);
+  const idx=sorted.findIndex(x=>x.name===name && x.score===score);
+  if(idx>=0){
+    let box=document.getElementById("myRankBox");
+    if(!box){
+      box=document.createElement("div");
+      box.id="myRankBox";
+      box.style.fontWeight="700";
+      box.style.marginTop="6px";
+      const rankBox=document.getElementById("globalRankBox");
+      if(rankBox) rankBox.appendChild(box);
+    }
+    box.innerHTML="🔥 あなたの順位: "+(idx+1)+"位";
+  }
+}
+
+// ランキング演出
+function enhanceRankingUI(data){
+  const list=document.querySelector("#globalRankBox ul, #globalRankBox ol");
+  decorateRanking(list);
+
+  const best=localStorage.getItem("settsyo_best");
+  if(best){
+    let bestEl=document.getElementById("bestScoreBox");
+    if(!bestEl){
+      bestEl=document.createElement("div");
+      bestEl.id="bestScoreBox";
+      bestEl.style.fontWeight="700";
+      bestEl.style.marginTop="6px";
+      const rankBox=document.getElementById("globalRankBox");
+      if(rankBox) rankBox.appendChild(bestEl);
+    }
+    bestEl.innerHTML="⭐ 自己ベスト: "+best;
+  }
+}
+
+</script>
+
+
+<script>
+function startGame(){
+  const chat = document.querySelector(".chat") || document.querySelector("#chat") || document.querySelector("[data-chat]");
+  if(!chat) return;
+
+  if(chat.children.length === 0){
+    const npc = document.createElement("div");
+    npc.className = "msg npc";
+    npc.innerHTML = "<b>水道局員</b><br>言い訳マンさんで、よろしかったでしょうか？";
+    chat.appendChild(npc);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", startGame);
+</script>
+
+
+<script>
+function __bestSettsyo(score){
+  let best = Number(localStorage.getItem("settsyoBest")||0);
+  if(score>best){ best=score; localStorage.setItem("settsyoBest", best); }
+  return best;
+}
+
+// PostgREST count (scores table is SUPABASE_TABLE or "leaderboard")
+async function __fetchMyRank(score){
+  try{
+    const table = (typeof SUPABASE_TABLE!=="undefined" && SUPABASE_TABLE) ? SUPABASE_TABLE : "leaderboard";
+    const base = (typeof SUPABASE_REST!=="undefined" && SUPABASE_REST) ? SUPABASE_REST : `${SUPABASE_URL}/rest/v1/${table}`;
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+
+    const url = `${base}?select=score&score=gt.${encodeURIComponent(score)}&limit=1`;
+    const res = await fetch(url, { 
+      headers: Object.assign(_supabaseHeaders ? _supabaseHeaders() : { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }, { Prefer:"count=exact" }),
+      cache:"no-store"
+    });
+    if(!res.ok) return null;
+    const cr = res.headers.get("content-range") || res.headers.get("Content-Range") || "";
+    const m = cr.match(/\/(\d+)$/);
+    const higher = m ? Number(m[1]) : null;
+    if(higher===null || Number.isNaN(higher)) return null;
+    return higher + 1;
+  }catch(e){
+    return null;
+  }
+}
+
+async function __renderStats(score, rankId, bestId){
+  const best = __bestSettsyo(score);
+  const bEl = document.getElementById(bestId);
+  if(bEl) bEl.textContent = best;
+
+  const r = await __fetchMyRank(score);
+  const rEl = document.getElementById(rankId);
+  if(rEl) rEl.textContent = (r==null ? "--" : r);
+}
+
+function __showEndStats(score){
+  const box = document.getElementById("endPlayerStats");
+  if(box){ box.style.display="block"; }
+  __renderStats(score, "endMyRank", "endMyBest");
+}
+
+function __showGlobalStats(score){
+  __renderStats(score, "globalMyRank", "globalMyBest");
+}
+</script>
+
+
+<script>
+async function __showRankOnlyStats(score){
+  __bestSettsyo(score);
+  const b = document.getElementById("rankOnlyMyBest");
+  if(b) b.textContent = Number(localStorage.getItem("settsyoBest")||0);
+  const r = await __fetchMyRank(score);
+  const re = document.getElementById("rankOnlyMyRank");
+  if(re) re.textContent = (r==null?"--":r);
+}
 </script>
 
 </body>
