@@ -647,37 +647,63 @@
 
   body{
     padding:4px;
+    height:100dvh;
+    overflow:hidden;
   }
 
   .app{
     width:100%;
-    height:100vh;
+    height:100dvh;
     border-radius:12px;
+    overflow:hidden;
   }
 
   /* 縦は1カラム */
   .main{
+    flex:1;
+    min-height:0;
     display:flex;
     flex-direction:column;
     gap:6px;
     padding:6px;
+    overflow:hidden;
   }
 
   .chatPane{
-    order:2;
-    height:40vh;
+    order:1;
+    height:52dvh;
+    min-height:52dvh;
+    max-height:52dvh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  .chatPane footer{
+    flex:0 0 auto;
+    position:sticky;
+    bottom:0;
+    z-index:5;
+    background: rgba(255,255,255,.92);
+  }
+
+  .chatPane .log{
+    flex:1 1 auto;
+    min-height:0;
+    max-height:none;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+    font-size:13px;
+    padding:6px;
+    padding-bottom:10px;
   }
 
   .uiPane{
-    order:1;
-    height:50vh;
+    order:2;
+    flex:1 1 auto;
+    min-height:0;
     overflow:auto;
-  }
-
-  /* チャットログ */
-  .chatPane .log{
-    font-size:13px;
-    padding:6px;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* スロット圧縮 */
@@ -707,40 +733,19 @@
     font-size:9px;
     padding:4px 6px;
   }
+
+  input[type="text"]{
+    height:44px;
+    font-size:16px;
+  }
+
+  .send{
+    height:44px;
+  }
 }
 
 
-/* ===== 横画面で遊ぶ案内（縦画面のときだけ表示） ===== */
-.title .author{
-  font-size:12px;
-  font-weight:600;
-  color:#667;
-  margin-left:8px;
-}
-.title .landscapeNotice{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  margin-left:10px;
-  padding:4px 10px;
-  font-size:12px;
-  font-weight:900;
-  color:#fff;
-  border-radius:999px;
-  background: linear-gradient(90deg, rgba(255,77,219,.92), rgba(123,92,255,.92), rgba(255,184,77,.86));
-  box-shadow: 0 12px 22px rgba(123,92,255,.18);
-  text-shadow: 0 10px 20px rgba(0,0,0,.20);
-  user-select:none;
-  animation: landFlash 1.5s ease-in-out infinite;
-}
-@keyframes landFlash{
-  0%{ transform: translateY(0) scale(1); filter:saturate(1); }
-  50%{ transform: translateY(-1px) scale(1.05); filter:saturate(1.18); }
-  100%{ transform: translateY(0) scale(1); filter:saturate(1); }
-}
-@media (orientation: landscape){
-  .title .landscapeNotice{ display:none; }
-}
+
 
 
 #globalRankList li.rank1{
@@ -765,7 +770,7 @@
 <div class="app">
   <header>
     <div class="title">
-      <div class="h">ザ・折衝 <span class="author">Created by HanaSaku</span><span class="landscapeNotice">📱↔ 横画面で遊んでください</span></div>
+      <div class="h">ザ・折衝 <span class="author">Created by HanaSaku</span></div>
       
     </div>
     <div class="right">
@@ -1391,12 +1396,12 @@ const modalTitle = $("modalTitle");
   init();
 
   function init(){
-    btnSend.addEventListener("click", (e)=>{ e.preventDefault(); onSend(); });
+    btnSend.addEventListener("click", (e)=>{ e.preventDefault(); onSend(); setTimeout(dismissSoftKeyboard, 20); });
     btnRestartTop.addEventListener("click", (e)=>{ e.preventDefault(); restartStage(); });
     btnSpin.addEventListener("click", (e)=>{ e.preventDefault(); spinSlotDigits(); });
 
     inputEl.addEventListener("keydown", (ev)=>{
-      if(ev.key === "Enter"){ ev.preventDefault(); onSend(); }
+      if(ev.key === "Enter"){ ev.preventDefault(); onSend(); setTimeout(dismissSoftKeyboard, 20); }
       if(ev.key === "Escape"){ ev.preventDefault(); inputEl.value=""; }
     });
     inputEl.addEventListener("input", ()=>{ inputEl.value = clip(inputEl.value, INPUT_MAX); });
@@ -1416,7 +1421,7 @@ const modalTitle = $("modalTitle");
       renderRankBox();    });
 
     loadStage(0);
-    setTimeout(()=> inputEl.focus(), 60);
+    setTimeout(()=>{ try{ inputEl.blur(); }catch(e){} }, 30);
   }
 
   function loadStage(stageIdx){
@@ -1484,7 +1489,7 @@ const modalTitle = $("modalTitle");
       return;
     }
     loadStage(metaGame.stageIndex + 1);
-    setTimeout(()=> inputEl.focus(), 60);
+    setTimeout(()=>{ try{ inputEl.blur(); }catch(e){} }, 30);
   }
 
   function renderTurn(){
@@ -1631,7 +1636,8 @@ const modalTitle = $("modalTitle");
 
     addMsg("me", text, {tone: ME_LABEL});
     inputEl.value = "";
-    inputEl.focus();
+    try{ inputEl.blur(); }catch(e){}
+    setTimeout(()=>{ try{ inputEl.blur(); }catch(e){} }, 30);
 
     const hit = detectTopics(text);
 
@@ -2356,6 +2362,17 @@ const modalTitle = $("modalTitle");
     const n = totalScore;
     const t = Date.now() % 1000000;
     return `HS-${n}-${t}`;
+  }
+
+  function dismissSoftKeyboard(){
+    try{
+      if(document.activeElement && typeof document.activeElement.blur === "function"){
+        document.activeElement.blur();
+      }
+      if(inputEl && typeof inputEl.blur === "function"){
+        inputEl.blur();
+      }
+    }catch(e){}
   }
 
   function clip(s,n){ return s.length<=n ? s : s.slice(0,n); }
