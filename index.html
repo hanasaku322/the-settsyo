@@ -743,21 +743,20 @@
 }
 
 
-/* === Global Ranking visuals === */
 #globalRankList li.rank1{
-  color:#FFD700;
+  color:#B8860B;
   font-weight:900;
   animation:rankGlow 1.4s ease-in-out infinite alternate;
-}
-@keyframes rankGlow{
-  from{ text-shadow:0 0 5px rgba(255,215,0,.6); }
-  to{ text-shadow:0 0 22px rgba(255,215,0,.95); }
 }
 #globalRankList li.you{
   background:rgba(255,120,0,0.14);
   border-radius:10px;
   padding:6px 8px;
   font-weight:900;
+}
+@keyframes rankGlow{
+  from{ text-shadow:0 0 5px rgba(255,215,0,.6); }
+  to{ text-shadow:0 0 22px rgba(255,215,0,.95); }
 }
 
 </style>
@@ -875,18 +874,11 @@
       </div>
       <div id="globalStatus" style="margin:6px 0 2px; font-size:12px; color:#5b6b7a;"></div>
       <ol id="globalRankList"></ol>
-
       <div id="globalPlayerStats" style="margin-top:10px;padding-top:10px;border-top:1px solid #e6eaf0;font-weight:800;">
         🔥 あなたの順位：<span id="globalMyRank">--</span>位　
         ⭐ 自己ベスト：<span id="globalMyBest">0</span>点
       </div>
-
       <div style="margin-top:6px;"><small>※各ステージ終了ごとにスコア登録します（初回のみ名前入力）</small></div>
-    </div>
-
-    <div id="endPlayerStats" style="display:none;margin-top:12px;padding:12px;border-top:2px solid #e6eaf0;font-weight:900;">
-      🔥 あなたの順位：<span id="endMyRank">--</span>位<br>
-      ⭐ 自己ベスト：<span id="endMyBest">0</span>点
     </div>
 
 
@@ -1034,7 +1026,6 @@
           const crown = (i===0)?"🥇":(i===1)?"🥈":(i===2)?"🥉":`${i+1}位`;
           li.textContent = `${crown}  ${nm}  ${sc}`;
           if(i===0) li.classList.add("rank1");
-          // 自分のスコア行を軽くハイライト（同点で複数ある場合もOK）
           try{
             if(typeof totalScore !== "undefined" && sc === totalScore){
               li.classList.add("you");
@@ -1044,6 +1035,7 @@
         });
       }
       setGlobalStatus("");
+      try{ __showGlobalStats(totalScore || 0); }catch(e){}
     }catch(err){
       setGlobalStatus("全国ランキング取得に失敗（通信エラー）");
       console.warn(err);
@@ -1060,7 +1052,6 @@
 
     // まず表示を更新
     await fetchGlobalTop();
-      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
 
     const stageNo = getStageNumber();
     const last = getLastSubmittedStage();
@@ -1081,7 +1072,6 @@
     if(ok){
       // submitGlobalScore 内で last stage/token は保存済み
       await fetchGlobalTop();
-      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
     }
   }
 
@@ -1194,7 +1184,6 @@
     });
 
     fetchGlobalTop();
-      try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
   }
 
   function setGlobalSubmitEnabled(enabled){
@@ -1305,8 +1294,6 @@
     relief:  ["減免","減額","免除","相談","申請","制度"],
     repair:  ["漏水","修理","工事","業者","点検","故障","メーター","メータ","検針"],
     policy:  ["条例","市長","役所","規則","行政","水道局","予告","通知"],
-    notice: ["予告","通知","督促","催告"],
-    mail: ["郵送","返戻","封筒","ポスト"],
 
     // 局員の反証ワード（あなたが打つ用）
     riverFree: ["川の水","川はタダ","川の水はタダ"],
@@ -1379,9 +1366,7 @@ const modalTitle = $("modalTitle");
 
     debtorName: "—",
 
-    
-    debtorKey: "jom",
-arrearsYen: 0,
+    arrearsYen: 0,
     arrearsMonths: 0,
     needMonthly: 0,
 
@@ -1402,7 +1387,9 @@ arrearsYen: 0,
     lastWinProb: 0,
     lastEV: 0,
   };
-  document.addEventListener('DOMContentLoaded', init);
+
+  init();
+
   function init(){
     btnSend.addEventListener("click", (e)=>{ e.preventDefault(); onSend(); });
     btnRestartTop.addEventListener("click", (e)=>{ e.preventDefault(); restartStage(); });
@@ -1456,18 +1443,16 @@ arrearsYen: 0,
     state.lastDebtorLine = "";
     state.lastWinProb = 0;
     state.lastEV = 0;
-    // 滞納者は毎ステージ ランダム抽選（普通の人名は使わない）
-    const d = DEBTOR_POOL[Math.floor(Math.random()*DEBTOR_POOL.length)];
-    state.debtorName = d.label;
-    state.debtorKey = d.key;
-    state.debtorProfile = d;
-state.arrearsMonths = rnd(3, 24);
+
+    state.debtorName = cfg.name;
+
+    state.arrearsMonths = rnd(3, 24);
     state.arrearsYen = round1000(rnd(cfg.arrearsMin, cfg.arrearsMax));
     state.arrearsYen = clamp(state.arrearsYen, 1000, 300000);
     state.needMonthly = Math.ceil(state.arrearsYen / 12 / 100) * 100;
 
     stageChip.textContent = `STAGE ${metaGame.stageIndex+1} / ${STAGES.length}`;
-    if(difficultyChip) difficultyChip.textContent = `相手：ランダム`;
+    if(difficultyChip) difficultyChip.textContent = `相手：${cfg.name}`;
     if(debtorChip) debtorChip.textContent = `相手：${state.debtorName}`;
 
     logEl.querySelectorAll(".row").forEach(n=>n.remove());
@@ -1614,52 +1599,26 @@ state.arrearsMonths = rnd(3, 24);
   function seedOpening(){
     addMsg("me", `${state.debtorName}さんで、よろしかったでしょうか？`, {tone: ME_LABEL});
 
-    const key = state.debtorKey || "jom";
+    const persona = STAGES[metaGame.stageIndex].name;
 
-    if(key==="jom"){
+    if(persona==="言い訳マン"){
       addMsg("other", pick([
         "…はい。\nでも聞いてください、こっちも被害者なんです。",
         "そうです。\nえ、今日来るって聞いてない。\n連絡、誰が止めたんですか？",
         "はい…。\n通知？見てない。\n管理会社が回収してた可能性あります。"
       ]), {tone: OTHER_LABEL});
-    } else if(key==="nj"){
+    } else if(persona==="なんJ民"){
       addMsg("other", pick([
         "せやで。\n名指しで来るの草。\nまあ話は聞くンゴ。",
         "ワイや。\nでも今、心がHP1や。\n短く頼むンゴ。",
         "当たり。\nただ無理ゲー額は無理やで。\nしらんけど。"
       ]), {tone: OTHER_LABEL});
-    } else if(key==="con"){
+    } else {
       addMsg("other", pick([
         "…そうだ。\n名簿はどこから来た。\nその出どころが“闇”だ。",
         "合ってる。\nだが“確認”の時点で既に管理されてる。\n南極の氷壁みたいにな。",
         "そう。\nその呼び方、どこで学んだ？\n都市伝説の入口だぞ。"
       ]), {tone: OTHER_LABEL});
-    } else if(key==="cry"){
-      addMsg("other", pick([
-        "…はい…。\nでも、今ほんとにギリギリで…。\n怒らないでください…。",
-        "そうです…。\nお願い、少しだけ待って…。\n最近ずっと眠れてなくて…。",
-        "はい…。\n私、悪い人じゃないんです…。\nただ…タイミングが全部悪くて…。"
-      ]), {tone: OTHER_LABEL});
-    } else if(key==="logic"){
-      addMsg("other", pick([
-        "はい、本人です。\nで、根拠は？条文は？\n感情で来るなら話は終わりです。",
-        "そう。\nただし“未払い”の定義を確認しましょう。\n前提がズレてると全部無駄です。",
-        "ええ。\n先に言いますが、私は“納得”しないと動きません。\n論理でどうぞ。"
-      ]), {tone: OTHER_LABEL});
-    } else if(key==="air"){
-      addMsg("other", pick([
-        "あ、はい！\nえっと…水道の人？\n今ちょうどカレー煮込んでて…。",
-        "そうです〜。\n通知？あの〜…紙ってすぐ家出するじゃないですか？",
-        "はい！\nでも私、滞納って言葉がちょっと可愛くないと思うんですよね。"
-      ]), {tone: OTHER_LABEL});
-    } else if(key==="yaku"){
-      addMsg("other", pick([
-        "…ああ、俺だ。\nで？“止める”って言ったな？\n言葉は選べよ。",
-        "そう。\n用件は短く。\n近所の目もある。",
-        "本人だ。\nただし、筋の通らん話は嫌いだ。\nちゃんと説明しろ。"
-      ]), {tone: OTHER_LABEL});
-    } else {
-      addMsg("other", "…そうです。", {tone: OTHER_LABEL});
     }
   }
 
@@ -1675,14 +1634,6 @@ state.arrearsMonths = rnd(3, 24);
     inputEl.focus();
 
     const hit = detectTopics(text);
-
-
-// 通り名ごとの「弱点ワード / 地雷ワード」判定
-const prof = state.debtorProfile || {};
-const weakHit = Array.isArray(prof.weak) && prof.weak.some(w => w && text.includes(w));
-const mineHit = Array.isArray(prof.mine) && prof.mine.some(w => w && text.includes(w));
-hit._weakHit = weakHit;
-hit._mineHit = mineHit;
 
     const isNegotiation =
       hit.money || hit.payday || hit.payment || hit.split || hit.pledge || hit.window || hit.water || hit.relief ||
@@ -1704,9 +1655,6 @@ hit._mineHit = mineHit;
       if(hit.riverFree || hit.parkWater || hit.bottleCheaper) add += 2;
 
       state.talkPower = clamp(state.talkPower + add, 0, 12);
-
-      if(hit._weakHit) state.talkPower = clamp(state.talkPower + 1, 0, 12);
-      if(hit._mineHit) state.talkPower = clamp(state.talkPower - 2, 0, 12);
     }
 
     if(hit.theft){
@@ -1719,16 +1667,11 @@ hit._mineHit = mineHit;
       await policeInterrupt(false);
     }
 
-state.turnsLeft -= 1;
-renderTurn();
+    state.turnsLeft -= 1;
+    renderTurn();
 
-// 交渉進捗：通常 +1、弱点ワードでボーナス、地雷ワードで伸びない
-let progDelta = 1;
-if(hit._mineHit) progDelta = 0;
-if(hit._weakHit) progDelta += 1;
-
-if(state.progress < PROGRESS_CAP) state.progress = clamp(state.progress + progDelta, 0, PROGRESS_CAP);
-renderProgress();
+    if(state.progress < PROGRESS_CAP) state.progress += 1;
+    renderProgress();
 
     if(text.includes("予告") || text.includes("通知") || text.includes("郵送") || text.includes("返戻")){
       if(state.progress < PROGRESS_CAP){
@@ -1909,7 +1852,7 @@ renderProgress();
   }
 
   function debtorFinalReaction(offered){
-    const persona = state.debtorKey || "jom";
+    const persona = STAGES[metaGame.stageIndex].name;
     const win = offered >= state.needMonthly;
 
     const s = spiceLine(persona);
@@ -1955,6 +1898,7 @@ renderProgress();
     const code = makeScoreCode();
     const debtorBlock = state.lastDebtorLine ? `\n\n滞納者：\n${state.lastDebtorLine}` : "";
 
+    window.scrollTo({ top: 0, behavior: "instant" });
     showOverlay(
       "WIN",
       `必要額：${yen(state.needMonthly)} / 月\n提示：${yen(offered)} / 月\n\nステージ得点：${lastStageScore}\n総合得点：${totalScore}\nスコアコード：${code}\n\n上司：\n${bossWinLine(offered)}\n\n結果：勝利（交渉終了）${debtorBlock}`,
@@ -1971,6 +1915,7 @@ renderProgress();
     const code = makeScoreCode();
     const debtorBlock = state.lastDebtorLine ? `\n\n滞納者：\n${state.lastDebtorLine}` : "";
 
+    window.scrollTo({ top: 0, behavior: "instant" });
     showOverlay(
       "LOSE",
       `${reason}\n\nステージ得点：0\n総合得点：${totalScore}\nスコアコード：${code}\n\n上司：\n${bossFailLine(reason)}\n\n結果：敗北（交渉終了）${debtorBlock}`,
@@ -1981,24 +1926,20 @@ renderProgress();
   }
 
   function showOverlay(title, text, isWin, isFinalWin){
-    
-    // 🔝 結果画面を必ずトップから見せる（表示後にリセットする）
+
     const _resetOverlayScroll = () => {
       try{
-        window.scrollTo(0,0);
+        window.scrollTo({ top: 0, behavior: "instant" });
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
       }catch(e){}
       try{ overlay.scrollTop = 0; }catch(e){}
       try{
-        const m = overlay.querySelector('.modal');
+        const m = overlay.querySelector(".modal");
         if(m) m.scrollTop = 0;
       }catch(e){}
     };
-window.scrollTo({ top: 0, behavior: 'instant' });
-    // overlay内スクロールも先頭へ
-    overlay.scrollTop = 0;
-    if(modal) modal.scrollTop = 0;
+
     modalTitle.textContent = title;
     modalText.textContent = text;
 
@@ -2010,16 +1951,25 @@ window.scrollTo({ top: 0, behavior: 'instant' });
     if(isWin || title === "ENDING") confetti.classList.add("show");
     else confetti.classList.remove("show");
 
+    // ローカルランキング
     renderRankBox();
-    // ステージ終了ごとに全国ランキングへ自動登録（名前がある場合）
-    autoSubmitGlobalAtStageEnd();
-    // 交渉終了画面でも全国ランキングを表示
+
+    // 全国ランキング：毎回トップから表示 & その場で登録できる状態にする
     try{
       setupGlobalRankingUI();
       globalRankBox.style.display = "block";
+      setGlobalSubmitEnabled(true);
+      syncGlobalSubmitLock();
+      if(playerNameEl) playerNameEl.value = getSavedPlayerName() || "";
       fetchGlobalTop();
       try{ __showEndStats(totalScore); __showGlobalStats(totalScore); }catch(e){}
-    }catch(e){}
+      // 未登録なら入力しやすく
+      if(playerNameEl && !getSavedPlayerName()){
+        setTimeout(()=>{ try{ playerNameEl.focus(); }catch(e){} }, 80);
+      }
+    }catch(e){
+      console.warn("global rank ui error", e);
+    }
 
     if(title === "ENDING"){
       btnStage.style.display = "inline-flex";
@@ -2032,22 +1982,25 @@ window.scrollTo({ top: 0, behavior: 'instant' });
       btnStage.textContent = isFinalWin ? "エンディングへ" : "次のステージへ";
       btnRetry.style.display = "none";
       btnEnd.style.display = "none";
+      btnStage.onclick = null;
     } else {
       btnStage.style.display = "none";
       btnRetry.style.display = "inline-flex";
       btnEnd.style.display = "none";
+      btnStage.onclick = null;
     }
 
     overlay.style.display = "grid";
     _resetOverlayScroll();
     requestAnimationFrame(_resetOverlayScroll);
-    setTimeout(_resetOverlayScroll, 60);
+    setTimeout(_resetOverlayScroll, 50);
+    setTimeout(_resetOverlayScroll, 140);
     inputEl.blur();
   }
 
   function bossWinLine(offered){
     const stage = metaGame.stageIndex+1;
-    const persona = state.debtorKey || "jom";
+    const persona = STAGES[metaGame.stageIndex].name;
     const policeNote = policeCountStage>0 ? `\n（警察割り込み：${policeCountStage}回）` : "";
     return pick(JOKE.bossWin) + `\nSTAGE${stage}（${persona}）\n（提示：${yen(offered)} / 月）${policeNote}`;
   }
@@ -2071,7 +2024,7 @@ window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   async function debtorReply(userText, hits){
-    const persona = state.debtorKey || "jom";
+    const persona = STAGES[metaGame.stageIndex].name;
 
     const isSmallTalk =
       hits.greet || hits.thanks || hits.sorry || hits.howare || hits.weather || hits.food || hits.work || hits.family || hits.time;
@@ -2086,17 +2039,6 @@ window.scrollTo({ top: 0, behavior: 'instant' });
 
     const blocks = [];
     blocks.push(pickAck(persona, hits));
-
-
-const prof = state.debtorProfile || {};
-if(hits._mineHit){
-  blocks.push(pickMineReaction(persona));
-} else if(hits._weakHit){
-  blocks.push(pickWeakReaction(persona));
-}
-if(prof.catch && Math.random() < 0.35){
-  blocks.push(prof.catch);
-}
 
     if(hits.confused){
       blocks.push(pickConfusedExplain(persona));
@@ -2126,34 +2068,7 @@ if(prof.catch && Math.random() < 0.35){
       return blocks.filter(Boolean).join("\n");
     }
 
-    
     blocks.push(pickNegotiationCore(persona, hits));
-
-    // ★神アップデート：キーワード反応の“言い訳パンチ”
-    function __keywordPunch(){
-      if(hits.money && (hits.notice || userText.includes("通知") || userText.includes("予告"))){
-        return persona==="なんJ民" ? "通知は見た。見たけど心が未ログインや。" : "通知？見ました。でもメンタルが“既読”拒否しました。";
-      }
-      if(hits.payment){
-        return persona==="陰謀論者" ? "支払いは“現実”を固定する儀式…だがやる。" : "払う気はある！あるけど財布が覚悟を決めてない！";
-      }
-      if(hits.split){
-        return "分納なら…人類にも優しい選択肢やと思う。";
-      }
-      if(hits.water || hits.threatStop){
-        return persona==="なんJ民" ? "止水は文明終了やんけ。やめてクレメンス。" : "止水は勘弁してください。生活が詰みます。";
-      }
-      if(hits.theft || userText.includes("盗水")){
-        return persona==="陰謀論者" ? "盗水じゃない。水の方が来た。“選ばれた”んだ。" : "盗水ちゃう！水が勝手に入ってきただけ！";
-      }
-      if(userText.includes("郵送") || userText.includes("返戻")){
-        return "郵送？来てない。ポストが最近やる気ない。";
-      }
-      return "";
-    }
-    const kp = __keywordPunch();
-    if(kp) blocks.push(kp);
-
 
     // 止水系：滞納者の“問い”を頻出させる
     if(hits.water || hits.threatStop){
@@ -2203,33 +2118,7 @@ if(prof.catch && Math.random() < 0.35){
     return out;
   }
 
-  function pickWeakReaction(persona){
-  const map = {
-    jom: ["…それなら検討する", "分割なら…まあ", "窓口なら行けるかも"],
-    nj:  ["通知の話なら聞く", "返戻？それは困る…", "再送なら確認する"],
-    con: ["資料があるなら読む", "根拠があるなら話す", "制度の説明なら聞く"],
-    cry: ["…ありがとう、少し落ち着いた", "相談なら…", "分割なら助かる…"],
-    logic:["手順が明確なら進める", "内訳が分かれば納得", "条文があるなら確認する"],
-    air: ["少額なら…いける", "給料日合わせなら…", "分納なら現実的"],
-    yaku:["バーコード払いなら即", "月々なら回せる", "振込ならできる"]
-  };
-  return pick((map[persona] || ["…それなら考える"]));
-}
-
-function pickMineReaction(persona){
-  const map = {
-    jom: ["圧、強すぎ…", "それ言われると閉じる", "今のはNG"],
-    nj:  ["決めつけはやめて", "嘘とか言わないで", "その言い方はムリ"],
-    con: ["脅しは論外だ", "強制？それは拒否", "議論にならん"],
-    cry: ["…それは怖い", "やめて…", "今の言い方は無理…"],
-    logic:["前提が乱暴すぎる", "論理が飛躍してる", "その物言いは不適切"],
-    air: ["無理って言ってる", "今すぐは無理", "追い込まないで"],
-    yaku:["ケンカ売ってる？", "その言い方はNG", "圧はやめとけ"]
-  };
-  return pick((map[persona] || ["それはNG"]));
-}
-
-function pickAck(persona, h){
+  function pickAck(persona, h){
     if(h.hardInsult){
       if(persona==="なんJ民") return maybeSuffixNJ("それは一線超えや。\n言い方変えよ。");
       if(persona==="陰謀論者") return "感情は分かる。\nだが発言は残る。";
@@ -2435,73 +2324,7 @@ function pickAck(persona, h){
     }
     return res;
   }
-
-const DEBTOR_POOL = [
-  // label: 通り名（普通の人名NG）
-  // catch: 口癖 / weak: 弱点ワード（刺さる） / mine: 地雷ワード（逆効果）
-  { label:"既読スルー職人", key:"jom", catch:"それ、読んでないです", weak:["分割","分納","今月","来月","給料日","窓口"], mine:["止水","給水停止","訴える","警察"] },
-  { label:"ポスト不信者", key:"nj",  catch:"郵送？来てないンゴ", weak:["再送","返戻","通知","封筒","ポスト","確認"], mine:["嘘","詐欺","払わない","今すぐ"] },
-  { label:"期限アレルギー", key:"con", catch:"期限って概念が陰謀だ", weak:["猶予","延期","相談","申請","制度"], mine:["最終通告","期限厳守","強制","差押"] },
-  { label:"封筒恐怖症", key:"cry", catch:"封筒見ると胃が…", weak:["相談","事情","減免","分割","猶予"], mine:["督促","催告","罰","延滞"] },
-  { label:"管理会社のせい男", key:"logic", catch:"管理会社が全部…", weak:["管理会社","確認","連絡","折り返し","担当"], mine:["本人責任","自己責任","言い訳","逃げ"] },
-  { label:"今月だけHP0民", key:"air", catch:"今月だけ…HP0", weak:["給料日","ボーナス","来月","少しずつ","分割"], mine:["一括","今日中","今すぐ","無理なら止水"] },
-  { label:"財布リスポーン待ち", key:"yaku", catch:"財布がリスポーン待ち", weak:["月々","分納","振込","コンビニ払い","バーコード"], mine:["借りろ","親に頼め","甘えるな"] },
-
-  { label:"しらんけど族", key:"nj", catch:"しらんけど。", weak:["確認","明日","来週","電話","折り返し"], mine:["確定","絶対","今決めろ","詰み"] },
-  { label:"南極の氷壁信者", key:"con", catch:"南極の氷壁が…", weak:["現地確認","事実","記録","書面","再説明"], mine:["バカ","妄想","陰謀論","黙れ"] },
-  { label:"NASA案件マン", key:"con", catch:"それNASA案件だわ", weak:["根拠","資料","規則","条例","説明"], mine:["とにかく払え","理屈抜き","知らん"] },
-  { label:"5Gのせい民", key:"con", catch:"5Gのせいで…", weak:["通信","明細","確認","相談","窓口"], mine:["関係ない","言い訳","病院行け"] },
-  { label:"月ホログラム派", key:"con", catch:"月はホログラム", weak:["現実","生活","最低額","分納","計画"], mine:["アホ","頭おかしい","黙れ"] },
-
-  { label:"涙腺決壊マン", key:"cry", catch:"ごめんなさい…", weak:["相談","事情","分割","猶予","減免"], mine:["泣くな","自己責任","甘い"] },
-  { label:"情緒ギリギリ勢", key:"cry", catch:"今それ言う？", weak:["ゆっくり","落ち着いて","確認","相談"], mine:["急げ","早く","さっさと","黙れ"] },
-
-  { label:"規約引用おじさん", key:"logic", catch:"規約ではですね…", weak:["条例","規則","根拠","条文","手続き"], mine:["黙れ","めんどい","知らん","適当"] },
-  { label:"条文チェックマン", key:"logic", catch:"条文番号は？", weak:["書面","通知","郵送","返戻","根拠"], mine:["感情論","適当","テキトー"] },
-  { label:"根拠ください勢", key:"logic", catch:"根拠ください", weak:["根拠","資料","説明","確認"], mine:["やかましい","うるさい","黙れ"] },
-  { label:"論理で殴る人", key:"logic", catch:"論理的に説明して", weak:["整理","手順","内訳","明細","説明"], mine:["とにかく","いいから","問答無用"] },
-
-  { label:"カレー煮込み中勢", key:"nj", catch:"今カレー煮込み中や", weak:["短く","要点","分割","来週"], mine:["長話","説教","今すぐ"] },
-  { label:"通知未開封Lv13", key:"jom", catch:"通知…見てない", weak:["通知","予告","郵送","返戻","再送"], mine:["督促","催告","止水"] },
-  { label:"チャット既読圧NG勢", key:"jom", catch:"既読圧やめて", weak:["落ち着いて","相談","分割","猶予"], mine:["急げ","早く","今すぐ"] },
-  { label:"手続き迷子", key:"air", catch:"何をすれば…", weak:["払い方","コンビニ払い","振込","窓口","バーコード"], mine:["知らん","自分で調べろ"] },
-  { label:"現金主義の化身", key:"air", catch:"カード無理です", weak:["窓口","コンビニ","現金","領収書"], mine:["オンラインだけ","アプリ必須"] },
-  { label:"電話嫌いの妖精", key:"jom", catch:"電話はムリ", weak:["郵送","書面","SMS","通知"], mine:["電話しろ","今かけろ"] },
-
-  { label:"分納検討中Lv7", key:"air", catch:"分納なら…", weak:["分納","分割","月々","最低額","計画"], mine:["一括","今日中","最後通告"] },
-  { label:"給料日前ピンチ勢", key:"nj", catch:"給料日前なんよ", weak:["給料日","来週","来月","少額","分割"], mine:["借りろ","親に頼め"] },
-  { label:"メーター疑心暗鬼", key:"con", catch:"メーター怪しい", weak:["点検","漏水","修理","明細","確認"], mine:["言い訳","嘘","詐欺"] },
-  { label:"漏水パニック族", key:"cry", catch:"漏水で…", weak:["漏水","修理","業者","点検","減免"], mine:["関係ない","払え"] },
-];
-
-
-  // 追加アーキタイプ（表示はしないが返答の癖が変わる）
-  JOKE.spice.cry = [
-    "すみません…ほんとに今、余裕がなくて…",
-    "怒られたら…たぶん…心が折れます…",
-    "分かってるんです…でも現実が追いつかなくて…",
-    "今日だけ…今日だけは勘弁してください…",
-  ];
-  JOKE.spice.logic = [
-    "まず前提を整理しましょう。感情はノイズです。",
-    "根拠を提示してください。推測で決めるのは危険です。",
-    "“妥当性”が説明できないなら、同意できません。",
-    "定義が曖昧です。そこを確定してから話しましょう。",
-  ];
-  JOKE.spice.air = [
-    "えっと…今“滞納”って言いました？それ、どこで買えます？",
-    "通知って…妖精みたいに突然現れますよね。",
-    "止水って…止まるのは水だけじゃなくて心です…（名言）",
-    "今、カレー煮込んでて…話、短めでお願いします！",
-  ];
-  JOKE.spice.yaku = [
-    "言葉は選べ。こっちは静かに暮らしたいだけだ。",
-    "筋を通せ。話はそれからだ。",
-    "脅しは嫌いだ。…だが現実的な話なら聞く。",
-    "近所の目もある。手短にな。",
-  ];
-
-function hasAmountLike(text){
+  function hasAmountLike(text){
     return DICT.amountLike.some(w=> text.includes(w)) || /\d{3,}/.test(text);
   }
 
@@ -2562,73 +2385,6 @@ const resultObserver = new MutationObserver(() => {
   }
 });
 resultObserver.observe(document.body, { childList: true, subtree: true });
-
-// ===== Ranking UI Enhancements =====
-function decorateRanking(list){
-  if(!list) return;
-  const rows=list.querySelectorAll("li, .row, tr");
-  rows.forEach((r,i)=>{
-    let crown="";
-    if(i===0) crown="🥇 ";
-    else if(i===1) crown="🥈 ";
-    else if(i===2) crown="🥉 ";
-    if(crown){
-      const el=r.querySelector(".rank")||r.firstChild;
-      if(el && !r.dataset.crowned){
-        r.dataset.crowned="1";
-        r.innerHTML = crown + r.innerHTML;
-      }
-    }
-  });
-}
-
-// 自己ベスト
-function updateBest(score){
-  const best = Number(localStorage.getItem("settsyo_best")||0);
-  if(score>best){
-    localStorage.setItem("settsyo_best",score);
-  }
-}
-
-// 自分の順位表示
-function showMyRank(name,score,data){
-  if(!data||!data.length) return;
-  const sorted=[...data].sort((a,b)=>b.score-a.score);
-  const idx=sorted.findIndex(x=>x.name===name && x.score===score);
-  if(idx>=0){
-    let box=document.getElementById("myRankBox");
-    if(!box){
-      box=document.createElement("div");
-      box.id="myRankBox";
-      box.style.fontWeight="700";
-      box.style.marginTop="6px";
-      const rankBox=document.getElementById("globalRankBox");
-      if(rankBox) rankBox.appendChild(box);
-    }
-    box.innerHTML="🔥 あなたの順位: "+(idx+1)+"位";
-  }
-}
-
-// ランキング演出
-function enhanceRankingUI(data){
-  const list=document.querySelector("#globalRankBox ul, #globalRankBox ol");
-  decorateRanking(list);
-
-  const best=localStorage.getItem("settsyo_best");
-  if(best){
-    let bestEl=document.getElementById("bestScoreBox");
-    if(!bestEl){
-      bestEl=document.createElement("div");
-      bestEl.id="bestScoreBox";
-      bestEl.style.fontWeight="700";
-      bestEl.style.marginTop="6px";
-      const rankBox=document.getElementById("globalRankBox");
-      if(rankBox) rankBox.appendChild(bestEl);
-    }
-    bestEl.innerHTML="⭐ 自己ベスト: "+best;
-  }
-}
-
 </script>
 
 <!-- ✅ 全国ランキング（閲覧専用） -->
@@ -2652,7 +2408,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const ov = document.getElementById("rankOnlyOverlay");
   const btnClose = document.getElementById("btnCloseRankOnly");
   const list = document.getElementById("rankOnlyList");
-  const stats = document.getElementById("rankOnlyStats");
 
   // 既存のSupabase定数を利用
   const SB_URL = (typeof SUPABASE_URL !== "undefined") ? SUPABASE_URL : "";
@@ -2660,7 +2415,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  async function fetchTop20(){
+  async function fetchTop10(){
     if(!SB_URL || !SB_KEY) throw new Error("Supabase設定が見つかりません");
     const url = `${SB_URL}/rest/v1/leaderboard?select=name,score,created_at&order=score.desc,created_at.asc&limit=20`;
     const res = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }, cache:"no-store" });
@@ -2688,7 +2443,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ov.style.display = "block";
     list.innerHTML = "<div style='opacity:.7'>読み込み中…</div>";
     try{
-      const rows = await fetchTop20();
+      const rows = await fetchTop10();
       render(rows);
     }catch(e){
       list.innerHTML = `<div style="color:#c00;font-weight:800;">読み込み失敗</div><div style="opacity:.7;font-size:12px;">${esc(e.message||"")}</div>`;
@@ -2705,90 +2460,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const m = ov ? ov.querySelector(".modal") : null;
   if(m) m.addEventListener("click", (e)=>e.stopPropagation());
 });
-
-// ===== Ranking UI Enhancements =====
-function decorateRanking(list){
-  if(!list) return;
-  const rows=list.querySelectorAll("li, .row, tr");
-  rows.forEach((r,i)=>{
-    let crown="";
-    if(i===0) crown="🥇 ";
-    else if(i===1) crown="🥈 ";
-    else if(i===2) crown="🥉 ";
-    if(crown){
-      const el=r.querySelector(".rank")||r.firstChild;
-      if(el && !r.dataset.crowned){
-        r.dataset.crowned="1";
-        r.innerHTML = crown + r.innerHTML;
-      }
-    }
-  });
-}
-
-// 自己ベスト
-function updateBest(score){
-  const best = Number(localStorage.getItem("settsyo_best")||0);
-  if(score>best){
-    localStorage.setItem("settsyo_best",score);
-  }
-}
-
-// 自分の順位表示
-function showMyRank(name,score,data){
-  if(!data||!data.length) return;
-  const sorted=[...data].sort((a,b)=>b.score-a.score);
-  const idx=sorted.findIndex(x=>x.name===name && x.score===score);
-  if(idx>=0){
-    let box=document.getElementById("myRankBox");
-    if(!box){
-      box=document.createElement("div");
-      box.id="myRankBox";
-      box.style.fontWeight="700";
-      box.style.marginTop="6px";
-      const rankBox=document.getElementById("globalRankBox");
-      if(rankBox) rankBox.appendChild(box);
-    }
-    box.innerHTML="🔥 あなたの順位: "+(idx+1)+"位";
-  }
-}
-
-// ランキング演出
-function enhanceRankingUI(data){
-  const list=document.querySelector("#globalRankBox ul, #globalRankBox ol");
-  decorateRanking(list);
-
-  const best=localStorage.getItem("settsyo_best");
-  if(best){
-    let bestEl=document.getElementById("bestScoreBox");
-    if(!bestEl){
-      bestEl=document.createElement("div");
-      bestEl.id="bestScoreBox";
-      bestEl.style.fontWeight="700";
-      bestEl.style.marginTop="6px";
-      const rankBox=document.getElementById("globalRankBox");
-      if(rankBox) rankBox.appendChild(bestEl);
-    }
-    bestEl.innerHTML="⭐ 自己ベスト: "+best;
-  }
-}
-
-</script>
-
-
-<script>
-function startGame(){
-  const chat = document.querySelector(".chat") || document.querySelector("#chat") || document.querySelector("[data-chat]");
-  if(!chat) return;
-
-  if(chat.children.length === 0){
-    const npc = document.createElement("div");
-    npc.className = "msg npc";
-    npc.innerHTML = "<b>水道局員</b><br>言い訳マンさんで、よろしかったでしょうか？";
-    chat.appendChild(npc);
-  }
-}
-
-window.addEventListener("DOMContentLoaded", startGame);
 </script>
 
 
@@ -2798,17 +2469,12 @@ function __bestSettsyo(score){
   if(score>best){ best=score; localStorage.setItem("settsyoBest", best); }
   return best;
 }
-
-// PostgREST count (scores table is SUPABASE_TABLE or "leaderboard")
 async function __fetchMyRank(score){
   try{
-    const table = (typeof SUPABASE_TABLE!=="undefined" && SUPABASE_TABLE) ? SUPABASE_TABLE : "leaderboard";
-    const base = (typeof SUPABASE_REST!=="undefined" && SUPABASE_REST) ? SUPABASE_REST : `${SUPABASE_URL}/rest/v1/${table}`;
     if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-
-    const url = `${base}?select=score&score=gt.${encodeURIComponent(score)}&limit=1`;
-    const res = await fetch(url, { 
-      headers: Object.assign(_supabaseHeaders ? _supabaseHeaders() : { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }, { Prefer:"count=exact" }),
+    const url = `${SUPABASE_REST}?select=score&score=gt.${encodeURIComponent(score)}&limit=1`;
+    const res = await fetch(url, {
+      headers: Object.assign(_supabaseHeaders(), { Prefer:"count=exact" }),
       cache:"no-store"
     });
     if(!res.ok) return null;
@@ -2817,41 +2483,15 @@ async function __fetchMyRank(score){
     const higher = m ? Number(m[1]) : null;
     if(higher===null || Number.isNaN(higher)) return null;
     return higher + 1;
-  }catch(e){
-    return null;
-  }
+  }catch(e){ return null; }
 }
-
-async function __renderStats(score, rankId, bestId){
+async function __showGlobalStats(score){
   const best = __bestSettsyo(score);
-  const bEl = document.getElementById(bestId);
-  if(bEl) bEl.textContent = best;
-
+  const bestEl = document.getElementById("globalMyBest");
+  const rankEl = document.getElementById("globalMyRank");
+  if(bestEl) bestEl.textContent = String(best);
   const r = await __fetchMyRank(score);
-  const rEl = document.getElementById(rankId);
-  if(rEl) rEl.textContent = (r==null ? "--" : r);
-}
-
-function __showEndStats(score){
-  const box = document.getElementById("endPlayerStats");
-  if(box){ box.style.display="block"; }
-  __renderStats(score, "endMyRank", "endMyBest");
-}
-
-function __showGlobalStats(score){
-  __renderStats(score, "globalMyRank", "globalMyBest");
-}
-</script>
-
-
-<script>
-async function __showRankOnlyStats(score){
-  __bestSettsyo(score);
-  const b = document.getElementById("rankOnlyMyBest");
-  if(b) b.textContent = Number(localStorage.getItem("settsyoBest")||0);
-  const r = await __fetchMyRank(score);
-  const re = document.getElementById("rankOnlyMyRank");
-  if(re) re.textContent = (r==null?"--":r);
+  if(rankEl) rankEl.textContent = (r==null ? "--" : String(r));
 }
 </script>
 
