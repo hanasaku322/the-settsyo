@@ -405,16 +405,16 @@
     input[type="text"]{
       flex:1;height:48px;padding:0 12px;
       border-radius: 16px;
-      border:1px solid var(--border);
+      border:2px solid #ff2f55;
       background: rgba(255,255,255,.98);
       color:var(--text);
       outline:none;
       font-size:16px;
-      box-shadow: 0 10px 22px rgba(30,60,90,.08);
+      box-shadow: 0 10px 22px rgba(30,60,90,.08), 0 0 0 2px rgba(255,47,85,.12);
     }
     input[type="text"]:focus{
-      border-color: rgba(93,214,255,.86);
-      box-shadow: 0 0 0 4px rgba(93,214,255,.25), 0 10px 22px rgba(30,60,90,.08);
+      border-color: #ff2f55;
+      box-shadow: 0 0 0 4px rgba(255,47,85,.22), 0 10px 22px rgba(30,60,90,.08);
     }
     .send{
       width:96px;height:48px;border-radius: 16px;font-weight:1200;
@@ -774,8 +774,8 @@
       
     </div>
     <div class="right">
-      <div class="chip" id="stageChip">STAGE 1 / 3</div>
-      <div class="chip turnBig" id="turnChip">残り <span id="turnLeft">10</span></div>
+      <div class="chip" id="stageChip" style="display:none;">STAGE 1 / 3</div>
+      <div class="chip turnBig" id="turnChip" style="display:none;">残り <span id="turnLeft">10</span></div>
       <div class="chip scoreBig">SCORE <span id="scoreChip">0</span></div>
       <button class="btn" id="btnShowGlobalRankingOnly" style="padding:6px 10px;">全国ランキング</button>
       <button class="btn" id="btnRestartTop">やり直し</button>
@@ -807,7 +807,7 @@
       <div class="card arrearsCard">
         <div class="arrearsRow">
           <div>
-            <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span> <span class="chip" id="debtorChip" style="margin-left:8px; font-size:9px; padding:4px 7px;">相手：—</span></div>
+            <div class="arrearsLabel">総滞納額 <span class="arrearsMonths" id="arrearsMonths">滞納 -- ヶ月</span> <span class="chip" id="debtorChip" style="margin-left:8px; font-size:9px; padding:4px 7px;">相手：—</span> <span class="chip" id="stageChipInline" style="margin-left:6px; font-size:9px; padding:4px 7px;">STAGE 1 / 3</span> <span class="chip" id="turnChipInline" style="margin-left:6px; font-size:9px; padding:4px 7px;">残り <span id="turnLeftInline">10</span></span></div>
             <div style="display:flex;align-items:flex-end;gap:20px;">
               <div class="arrearsBig" id="arrearsBig">¥0</div>
               <div style="font-size:16px;font-weight:700;color:#22aa88;white-space:nowrap;">
@@ -1457,6 +1457,7 @@ const modalTitle = $("modalTitle");
     state.needMonthly = Math.ceil(state.arrearsYen / 12 / 100) * 100;
 
     stageChip.textContent = `STAGE ${metaGame.stageIndex+1} / ${STAGES.length}`;
+    try{ syncInlineStageTurn(); }catch(e){}
     if(difficultyChip) difficultyChip.textContent = `相手：${cfg.name}`;
     if(debtorChip) debtorChip.textContent = `相手：${state.debtorName}`;
 
@@ -1492,10 +1493,24 @@ const modalTitle = $("modalTitle");
     setTimeout(()=>{ try{ inputEl.blur(); }catch(e){} }, 30);
   }
 
+
+  function syncInlineStageTurn(){
+    try{
+      const sc = document.getElementById("stageChipInline");
+      const tc = document.getElementById("turnChipInline");
+      const tl = document.getElementById("turnLeftInline");
+      if(sc && stageChip) sc.textContent = stageChip.textContent;
+      if(tc && turnLeftEl){
+        if(tl) tl.textContent = turnLeftEl.textContent;
+      }
+    }catch(e){}
+  }
+
   function renderTurn(){
     turnLeftEl.textContent = state.turnsLeft;
     if(state.turnsLeft <= 2) turnChip.classList.add("danger");
     else turnChip.classList.remove("danger");
+    try{ syncInlineStageTurn(); }catch(e){}
   }
   function renderArrears(){
     arrearsBig.textContent = yen(state.arrearsYen);
