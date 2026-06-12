@@ -501,6 +501,15 @@
       .title h1 { font-size: 16px; }
       .bubble { max-width: 560px; font-size: 16px; }
     }
+      .versionInfo {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+      opacity: .8;
+    }
   </style>
 </head>
 <body>
@@ -562,6 +571,7 @@
       <strong>接続状態</strong><br>
       <span id="serverStatus">確認中</span>
       <input class="codeInput" id="connectCodeInput" inputmode="numeric" maxlength="8" placeholder="接続確認コード" />
+      <div class="versionInfo" id="versionInfo">version: v36</div>
       <div class="sheetActions">
         <button class="secondary" id="testApiBtn">接続確認</button>
         <button class="secondary" id="resetBtn">最初から</button>
@@ -593,6 +603,7 @@ const $ = (id) => document.getElementById(id);
 
 const PLAYER_MAX_CHARS = 35;
 const DEBTOR_MAX_CHARS = 320;
+const APP_VERSION = "v36";
 const TOTAL_ARREARS = 18400;
 const MIN_SUCCESS_PAYMENT = 9200;
 const FRIENDLY_ERROR = "AIとの接続に失敗しました。少し時間をおいてから、もう一度お試しください。";
@@ -797,6 +808,7 @@ function updateUI() {
   if ($("turnText")) $("turnText").textContent = `${state.turn} / ${state.maxTurns}ターン`;
   if ($("characterLabel")) $("characterLabel").textContent = state.characterLabel;
   if ($("topCharacterName")) $("topCharacterName").textContent = state.characterLabel;
+  if ($("versionInfo")) $("versionInfo").textContent = `version: ${APP_VERSION}`;
 
   const inputLen = countChars($("playerInput").value);
   $("sendBtn").disabled = state.ended || state.busy || !state.serverOk || inputLen === 0 || inputLen > PLAYER_MAX_CHARS;

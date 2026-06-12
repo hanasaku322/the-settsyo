@@ -558,7 +558,7 @@ app.post("/api/chat", rateLimit, async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ザ・水道滞納者 AIサーバー版 v35`);
+  console.log(`ザ・水道滞納者 AIサーバー版 v36`);
   console.log(`http://localhost:${PORT}`);
   console.log(`Gemini model: ${GEMINI_MODEL}`);
   console.log(`API key loaded: ${Boolean(GEMINI_API_KEY)}`);
