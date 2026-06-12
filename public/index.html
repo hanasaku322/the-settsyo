@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ザ・水道滞納者 v29</title>
+  <style>
+    :root {
+      --bg: #0b1018;
+      --panel: #141b28;
+      --panel2: #1d2636;
+      --text: #eef3ff;
+      --muted: #9aa7ba;
+      --accent: #78b9ff;
+      --accent2: #4f86d9;
+      --bad: #ff7f8f;
+      --good: #8ee59b;
+      --warn: #ffd166;
+      --line: rgba(255,255,255,.12);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    body { height: 100dvh; }
+
+    .desktopShell {
+      max-width: 760px;
+      margin: 0 auto;
+      height: 100dvh;
+      border-left: 1px solid rgba(255,255,255,.07);
+      border-right: 1px solid rgba(255,255,255,.07);
+      background: rgba(7,10,15,.45);
+    }
+
+    .app {
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(120,185,255,.18), transparent 38%),
+        linear-gradient(180deg, #101827, #070a0f 70%);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: calc(7px + env(safe-area-inset-top, 0px)) 10px 7px;
+      background: rgba(13,18,28,.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .titleRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title { min-width: 0; }
+
+    .title h1 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.15;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .title .sub {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topCharacter {
+      color: #cfe8ff;
+      font-weight: 900;
+    }
+
+    .topActions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .statusOpen,
+    .topReset {
+      border: 1px solid rgba(120,185,255,.35);
+      color: #cfe8ff;
+      background: rgba(120,185,255,.11);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      min-height: 32px;
+    }
+
+    .topReset {
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+    }
+
+    .chat {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 14px 10px 16px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      margin: 0 0 12px;
+    }
+
+    .msg.player { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 31px;
+      height: 31px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .npc .avatar { background: #3b4659; }
+    .player .avatar { background: #1e5892; }
+    .system .avatar { background: #6b5b2e; }
+    .error .avatar { background: #713544; }
+
+    .bubble {
+      max-width: min(78vw, 680px);
+      padding: 10px 12px;
+      border-radius: 16px;
+      line-height: 1.68;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: var(--panel2);
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 15px;
+    }
+
+    .player .bubble {
+      background: linear-gradient(135deg, #1d5c94, #1a4979);
+      border-color: rgba(120,185,255,.25);
+    }
+
+    .system .bubble {
+      background: rgba(255,209,102,.11);
+      border-color: rgba(255,209,102,.16);
+    }
+
+    .error .bubble {
+      background: rgba(255,127,143,.14);
+      border-color: rgba(255,127,143,.24);
+      color: #ffd6dc;
+    }
+
+    .composer {
+      z-index: 30;
+      padding: 8px 10px calc(10px + var(--safeBottom));
+      background: rgba(9,13,20,.96);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .counter {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 4px 6px;
+    }
+
+    .counter.over { color: var(--bad); }
+
+    .inputBox {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    textarea {
+      width: 100%;
+      max-height: 78px;
+      min-height: 48px;
+      resize: none;
+      border-radius: 17px;
+      border: 1px solid var(--line);
+      background: #101723;
+      color: var(--text);
+      padding: 12px 13px;
+      font-size: 16px;
+      line-height: 1.45;
+      outline: none;
+    }
+
+    textarea::placeholder { color: #7e8aa0; }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      min-height: 48px;
+      padding: 0 14px;
+      color: #06101f;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: #263246;
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .sheetBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.52);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 50;
+    }
+
+    .sheetBackdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: translateY(104%);
+      transition: transform .24s ease;
+      z-index: 60;
+      padding: 10px 10px calc(12px + var(--safeBottom));
+      background: rgba(18,25,37,.98);
+      border-top: 1px solid var(--line);
+      border-radius: 22px 22px 0 0;
+      box-shadow: 0 -18px 40px rgba(0,0,0,.36);
+      max-height: 86dvh;
+      overflow-y: auto;
+    }
+
+    .sheet.show { transform: translateY(0); }
+
+    .sheetHandle {
+      width: 44px;
+      height: 5px;
+      border-radius: 99px;
+      margin: 2px auto 12px;
+      background: rgba(255,255,255,.22);
+    }
+
+    .sheetHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sheet h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .closeBtn {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .card {
+      background: rgba(255,255,255,.045);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      line-height: 1.65;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .card strong { color: var(--text); }
+
+    .resultText {
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .statusGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 8px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .statTop {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .bar {
+      height: 7px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.1);
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .2s ease;
+    }
+
+    .fill.good { background: var(--good); }
+    .fill.bad { background: var(--bad); }
+    .fill.warn { background: var(--warn); }
+
+    .codeInput {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: #101723;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 16px;
+      outline: none;
+      margin-top: 8px;
+    }
+
+    .sheetActions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .sheetActions button {
+      min-height: 42px;
+    }
+
+
+    .endingOverlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(120,185,255,.18), transparent 38%),
+        rgba(0,0,0,.88);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+      z-index: 100;
+    }
+
+    .endingOverlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .endingCard {
+      width: min(92vw, 520px);
+      min-height: 360px;
+      border-radius: 24px;
+      border: 1px solid rgba(120,185,255,.22);
+      background: linear-gradient(180deg, rgba(20,27,40,.96), rgba(8,12,19,.98));
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+      padding: 22px 18px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .endingLabel {
+      color: #9ed0ff;
+      font-weight: 900;
+      letter-spacing: .16em;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .endingTitle {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 900;
+      margin-top: 4px;
+    }
+
+    .endingLines {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    .endingLine {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+
+    .endingLine.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .endingActions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .endingActions button {
+      width: 100%;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (min-width: 850px) {
+      body { background: #05070b; }
+      .title h1 { font-size: 16px; }
+      .bubble { max-width: 560px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="desktopShell">
+    <main class="app">
+      <header class="topbar">
+        <div class="titleRow">
+          <div class="title">
+            <h1>ザ・水道滞納者</h1>
+            <div class="sub"><span class="topCharacter" id="topCharacterName">滞納者</span>｜10ターン以内に支払約束を取ろう。</div>
+          </div>
+          <div class="topActions">
+            <button class="topReset" id="topResetBtn">最初から</button>
+            <button class="statusOpen" id="statusBtn">状況</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="chat" id="chat" aria-label="会話ログ"></section>
+
+      <footer class="composer">
+        <div class="counter" id="counter">
+          <span>35文字以内 / Enterで送信</span>
+          <span><span id="charCount">0</span> / 35</span>
+        </div>
+        <div class="inputBox">
+          <textarea
+            id="playerInput"
+            rows="1"
+            maxlength="35"
+            enterkeyhint="send"
+            placeholder="担当者として話す"></textarea>
+          <button id="sendBtn">送信</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <div class="sheetBackdrop" id="sheetBackdrop"></div>
+  <section class="sheet" id="sheet" aria-label="詳細情報">
+    <div class="sheetHandle"></div>
+    <div class="sheetHead">
+      <h2>状況</h2>
+      <button class="secondary closeBtn" id="closeSheetBtn">閉じる</button>
+    </div>
+
+    <div class="card">
+      <strong>進行</strong><br>
+      <span id="turnText">0 / 10ターン</span>
+    </div>
+
+    <div class="card">
+      <strong>相手情報</strong><br>
+      <span id="characterLabel">滞納者</span> / 滞納額：18,400円
+    </div>
+
+    <div class="card">
+      <strong>接続状態</strong><br>
+      <span id="serverStatus">確認中</span>
+      <input class="codeInput" id="connectCodeInput" inputmode="numeric" maxlength="8" placeholder="接続確認コード" />
+      <div class="sheetActions">
+        <button class="secondary" id="testApiBtn">接続確認</button>
+        <button class="secondary" id="resetBtn">最初から</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>結果</strong><br>
+      <div class="resultText" id="resultBox">まだ折衝中です。</div>
+    </div>
+  </section>
+
+  <section class="endingOverlay" id="endingOverlay" aria-label="エンディング">
+    <div class="endingCard">
+      <div>
+        <div class="endingLabel">ENDING</div>
+        <div class="endingTitle">折衝成立</div>
+      </div>
+      <div class="endingLines" id="endingLines"></div>
+      <div class="endingActions">
+        <button id="endingRestartBtn">もう一度プレイ</button>
+        <button class="secondary" id="endingCloseBtn">結果を見る</button>
+      </div>
+    </div>
+  </section>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const PLAYER_MAX_CHARS = 35;
+const DEBTOR_MAX_CHARS = 180;
+const TOTAL_ARREARS = 18400;
+const MIN_SUCCESS_PAYMENT = 9200;
+const FRIENDLY_ERROR = "AIとの接続に失敗しました。少し時間をおいてから、もう一度お試しください。";
+const ENDING_TEST_CODE = "12345678";
+const CONNECT_CODE = "8739";
+
+let state = {
+  turn: 0,
+  maxTurns: 10,
+  trust: 35,
+  anger: 25,
+  will: 25,
+  pressure: 20,
+  ended: false,
+  conversation: [],
+  serverOk: false,
+  busy: false,
+  composing: false,
+  endingQuality: "none",
+  lastJudgement: null,
+  characterId: "conspiracy",
+  characterLabel: "陰謀論者",
+  finalScore: 0
+};
+
+const debtorCharacters = [
+  {
+    id: "conspiracy",
+    label: "陰謀論者",
+    openings: [
+      "……料金の件ですよね。こういう通知って、結局こっちを追い込む仕組みなんですよね。",
+      "はい、水道料金の話ですね。でも、いきなり止めるとか言われると正直納得できません。",
+      "分かっています。ただ、こういう手続きって本当にこちらの事情を見ているんですか。"
+    ]
+  },
+  {
+    id: "pachinko",
+    label: "パチンコマン",
+    openings: [
+      "あー、水道料金ですよね。払う気はあるんですけど、今ちょっと手元が厳しくて……。",
+      "すみません、後回しにしてました。次の給料で何とかするつもりだったんです。",
+      "分かってますって。逃げてるわけじゃないです。ただ今すぐはきついんですよ。"
+    ]
+  },
+  {
+    id: "gyaru",
+    label: "ギャル",
+    openings: [
+      "え、水道料金の件ですよね。分かってるんですけど、今月ほんと無理めで……。",
+      "すみません、放置してたわけじゃないです。ちょっと色々重なってて、普通にきついです。",
+      "あー、はい。払わなきゃなのは分かってます。でも今すぐって言われると厳しいです。"
+    ]
+  },
+  {
+    id: "car_bro",
+    label: "車好きの兄ちゃん",
+    openings: [
+      "あ、水道料金の件っすよね。分かってます。ただ車検と修理が重なって、今かなりきついんですよ。",
+      "すみません、後回しにしてました。車のローンと保険で手元が飛んでしまって……。",
+      "はい、未納の件ですよね。払う気はあるんですけど、タイヤ交換で出費が重なってしまって。"
+    ]
+  },
+  {
+    id: "space_ceo",
+    label: "宇宙起業家風の男",
+    openings: [
+      "水道料金の件ですね。これは本質的には一時的なキャッシュフローの問題です。",
+      "未納の件は認識しています。ただ、今は少し大きなプロジェクトに資金を回していまして。",
+      "水道インフラの重要性は理解しています。ただ、今すぐ全額というのは効率的ではないですね。"
+    ]
+  }
+];
+
+function pickDebtorCharacter() {
+  return pick(debtorCharacters);
+}
+
+function getDebtorCharacter(id) {
+  return debtorCharacters.find(c => c.id === id) || debtorCharacters[0];
+}
+
+
+function countChars(text) {
+  return Array.from(text || "").length;
+}
+
+function limitChars(text, maxLen) {
+  return Array.from(text || "").slice(0, maxLen).join("");
+}
+
+function clamp(n, min=0, max=100) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function addMessage(role, text) {
+  const chat = $("chat");
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "player" ? "担" : role === "npc" ? "滞" : role === "error" ? "!" : "判";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = role === "npc" ? limitChars(text, DEBTOR_MAX_CHARS) : text;
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function updateCounter() {
+  const len = countChars($("playerInput").value);
+  $("charCount").textContent = len;
+  $("counter").classList.toggle("over", len > PLAYER_MAX_CHARS);
+}
+
+function updateUI() {
+  if ($("turnText")) $("turnText").textContent = `${state.turn} / ${state.maxTurns}ターン`;
+  if ($("characterLabel")) $("characterLabel").textContent = state.characterLabel;
+  if ($("topCharacterName")) $("topCharacterName").textContent = state.characterLabel;
+
+  const inputLen = countChars($("playerInput").value);
+  $("sendBtn").disabled = state.ended || state.busy || !state.serverOk || inputLen === 0 || inputLen > PLAYER_MAX_CHARS;
+  $("testApiBtn").disabled = state.busy;
+  updateCounter();
+}
+
+function containsAny(text, words) {
+  return words.some(w => text.includes(w));
+}
+
+function scorePlayer(text) {
+  let t = text.replace(/\s/g, "");
+
+  const empathy = ["事情", "大変", "厳しい", "無理", "相談", "一緒", "確認", "わかりました", "分かりました", "払える範囲", "可能な範囲", "生活"];
+  const concrete = ["いつ", "何日", "日まで", "今月", "来月", "今日", "明日", "金額", "いくら", "円", "千", "万", "支払日", "支払い日", "分納", "分割", "約束", "予定"];
+  const hard = ["止め", "停止", "給水停止", "法的", "差押", "差し押さえ", "払え", "義務", "督促", "滞納", "今すぐ", "約束しただろ", "困りますよ", "半分", "半額", "9200", "9,200", "一万円", "1万円"];
+  const tooSoft = ["いつでも", "そのうち", "大丈夫です", "待ちます", "無理ならいい", "払えたら", "できたら"];
+  const respect = ["失礼", "恐れ入ります", "お願いします", "確認させて", "教えて"];
+
+  if (containsAny(t, empathy)) { state.trust += 8; state.anger -= 4; }
+  if (containsAny(t, concrete)) { state.will += 10; state.trust += 3; }
+  if (hasDate(t) && hasEnoughAmount(t)) { state.will += 22; state.trust += 6; }
+  else if (hasDate(t) && hasAmount(t)) { state.will += 5; state.trust += 1; state.pressure -= 2; }
+  if (hasPromiseWord(t)) { state.will += 8; state.trust += 3; }
+  if (t.includes("水") || t.includes("命")) { state.anger += 5; state.pressure += 3; }
+  if (containsAny(t, hard)) { state.pressure += 13; state.anger += 11; state.trust -= 6; state.will += 3; }
+  if (containsAny(t, tooSoft)) { state.pressure -= 7; state.will -= 8; state.trust += 3; }
+  if (containsAny(t, respect)) { state.trust += 4; state.anger -= 2; }
+
+  if (countChars(t) < 5) { state.will -= 4; }
+
+  state.trust = clamp(Math.round(state.trust));
+  state.anger = clamp(Math.round(state.anger));
+  state.will = clamp(Math.round(state.will));
+  state.pressure = clamp(Math.round(state.pressure));
+}
+
+function normalizeNumberText(text) {
+  return String(text || "").replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+}
+
+function extractAmounts(text) {
+  const t = normalizeNumberText(text)
+    .replace(/１/g, "1")
+    .replace(/２/g, "2")
+    .replace(/３/g, "3")
+    .replace(/４/g, "4")
+    .replace(/５/g, "5")
+    .replace(/６/g, "6")
+    .replace(/７/g, "7")
+    .replace(/８/g, "8")
+    .replace(/９/g, "9")
+    .replace(/０/g, "0");
+
+  const amounts = [];
+  const patterns = [
+    /(\d{1,3}(?:,\d{3})+|\d+)\s*万円/g,
+    /(\d{1,3}(?:,\d{3})+|\d+)\s*万/g,
+    /(\d{1,3}(?:,\d{3})+|\d+)\s*千円/g,
+    /(\d{1,3}(?:,\d{3})+|\d+)\s*千/g,
+    /(\d{1,3}(?:,\d{3})+|\d+)\s*円/g
+  ];
+
+  for (const re of patterns) {
+    let m;
+    while ((m = re.exec(t)) !== null) {
+      const raw = Number(String(m[1]).replace(/,/g, ""));
+      if (!Number.isFinite(raw)) continue;
+      if (re.source.includes("万円") || re.source.includes("万")) amounts.push(raw * 10000);
+      else if (re.source.includes("千円") || re.source.includes("千")) amounts.push(raw * 1000);
+      else amounts.push(raw);
+    }
+  }
+
+  const kanjiMap = [
+    ["一万", 10000], ["二万", 20000], ["三万", 30000],
+    ["一万円", 10000], ["二万円", 20000], ["三万円", 30000],
+    ["一千", 1000], ["二千", 2000], ["三千", 3000], ["四千", 4000], ["五千", 5000],
+    ["六千", 6000], ["七千", 7000], ["八千", 8000], ["九千", 9000],
+    ["千円", 1000], ["半分", MIN_SUCCESS_PAYMENT], ["半額", MIN_SUCCESS_PAYMENT]
+  ];
+  for (const [word, value] of kanjiMap) {
+    if (t.includes(word)) amounts.push(value);
+  }
+
+  return amounts;
+}
+
+function maxAmount(text) {
+  const amounts = extractAmounts(text);
+  return amounts.length ? Math.max(...amounts) : 0;
+}
+
+function hasAmount(text) {
+  return maxAmount(text) > 0;
+}
+
+function hasEnoughAmount(text) {
+  return maxAmount(text) >= MIN_SUCCESS_PAYMENT;
+}
+
+function hasDate(text) {
+  const t = text.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+  return /(\d{1,2}\s*日|今日|明日|あさって|明後日|今月|来月|月末|週末|給料日)/.test(t);
+}
+
+function hasPromiseWord(text) {
+  return /(約束|払う|払います|払える|払えます|いける|できます|やります|頑張る|振込|支払|支払い|納付|入金)/.test(text);
+}
+
+function hasAgreementWord(text) {
+  return /(約束|払います|支払います|入金します|振り込みます|振込します|納付します|その条件で|それでお願いします|その金額で|その日までに|それなら払え|それならいけ|了承|了解しました|分かりました|わかりました)/.test(text);
+}
+
+function hasExplicitNpcAgreement(text) {
+  const t = String(text || "");
+  const positive = /(約束|払います|支払います|入金します|振り込みます|振込します|納付します|その条件で|それでお願いします|その金額で|その日までに|了承|了解しました|分かりました|わかりました|それならいけ|なんとかします)/.test(t);
+  const negative = /(無理|厳しい|できない|払えない|難しい|ちょっと|かもしれない|考えます|相談|待って|保留)/.test(t);
+  return positive && !negative;
+}
+
+function normalizeClientJudgement(j) {
+  if (!j || typeof j !== "object") return null;
+  const decision = String(j.decision || "defer");
+  const amount = Number(j.amount || 0);
+  const date = j.date ? String(j.date) : "";
+  const agreed = j.agreed === true && (decision === "accept" || decision === "partial_accept") && amount > 0 && date;
+  const praise = agreed && amount >= MIN_SUCCESS_PAYMENT;
+  return {
+    decision,
+    agreed,
+    amount,
+    date,
+    confidence: Number(j.confidence || 0),
+    success: agreed,
+    praise
+  };
+}
+
+function analyzeAgreement() {
+  const lastNpcMsg = [...state.conversation].reverse().find(m => m.role === "npc");
+  const structured = normalizeClientJudgement(lastNpcMsg?.judgement || state.lastJudgement);
+
+  if (structured) {
+    return {
+      amountInAll: structured.amount > 0,
+      enoughAmountInAll: structured.amount >= MIN_SUCCESS_PAYMENT,
+      dateInAll: Boolean(structured.date),
+      npcAccepted: structured.agreed,
+      npcConcrete: structured.agreed,
+      playerProposedConcrete: false,
+      playerSaidPromise: false,
+      anyPromise: structured.success,
+      enoughPromise: structured.praise,
+      success: structured.success,
+      praise: structured.praise,
+      judgement: structured
+    };
+  }
+
+  // 構造化判定が取れなかった時だけ、従来の文字判定を保険として使う。
+  const allText = state.conversation.map(m => m.text).join(" ");
+  const npcText = state.conversation.filter(m => m.role === "npc").map(m => m.text).join(" ");
+  const lastNpc = [...state.conversation].reverse().find(m => m.role === "npc")?.text || "";
+
+  const amountInAll = hasAmount(allText);
+  const enoughAmountInAll = hasEnoughAmount(allText);
+  const dateInAll = hasDate(allText);
+  const npcAccepted = hasExplicitNpcAgreement(lastNpc);
+  const anyPromise = amountInAll && dateInAll && npcAccepted;
+  const enoughPromise = enoughAmountInAll && dateInAll && npcAccepted;
+
+  return {
+    amountInAll,
+    enoughAmountInAll,
+    dateInAll,
+    npcAccepted,
+    npcConcrete: hasAmount(npcText) && hasDate(npcText) && npcAccepted,
+    playerProposedConcrete: false,
+    playerSaidPromise: false,
+    anyPromise,
+    enoughPromise,
+    success: anyPromise,
+    praise: enoughPromise,
+    judgement: null
+  };
+}
+
+function judgeEnd() {
+  const agreement = analyzeAgreement();
+
+  if (agreement.success && state.turn >= 3) {
+    if (agreement.praise) {
+      const j = agreement.judgement;
+      endGame(true, j ? `${j.date}に${j.amount.toLocaleString()}円の支払約束が取れました。` : "9,200円以上の支払約束を確認できました。", "praise");
+    } else {
+      const j = agreement.judgement;
+      endGame(true, j ? `${j.date}に${j.amount.toLocaleString()}円の約束が取れました。` : "支払約束は取れましたが、9,200円未満です。", "scold");
+    }
+    return true;
+  }
+
+  if (state.anger >= 90 || state.pressure >= 94) {
+    endGame(false, "相手が反発し、通話を切りました。", "fail");
+    return true;
+  }
+
+  if (state.turn >= 7 && state.trust >= 55 && state.will >= 80 && state.anger < 78) {
+    // まだ明確な約束がない場合は、ここでは終わらせない。
+  }
+
+  if (state.turn >= state.maxTurns) {
+    const finalAgreement = analyzeAgreement();
+    const fallbackSuccess = false;
+    const success = finalAgreement.success || fallbackSuccess;
+    const quality = finalAgreement.praise ? "praise" : success ? "scold" : "fail";
+    endGame(success, success
+      ? (quality === "praise" ? "9,200円以上の支払約束を確認できました。" : "約束は取れましたが、金額が不足しています。")
+      : "滞納者の明確な了承までは取れませんでした。", quality);
+    return true;
+  }
+
+  return false;
+}
+
+function calculateFinalScore(success, quality) {
+  const agreement = analyzeAgreement();
+  const amount = agreement?.judgement?.amount || 0;
+  let score = success ? 50 : 12;
+
+  if (success) {
+    score += Math.min(22, Math.floor(amount / 1000) * 2);
+    if (amount >= MIN_SUCCESS_PAYMENT) score += 14;
+    if (quality === "praise") score += 8;
+    score += Math.max(0, (state.maxTurns - state.turn) * 2);
+    score += Math.round(state.trust / 12);
+    score += Math.round(state.will / 14);
+    score -= Math.round(state.anger / 18);
+    score -= Math.round(state.pressure / 28);
+  } else {
+    score += Math.round(state.trust / 15);
+    score += Math.round(state.will / 18);
+    score -= Math.round(state.anger / 10);
+    score -= Math.round(state.pressure / 16);
+  }
+
+  return clamp(Math.round(score), 0, 100);
+}
+
+function endGame(success, reason, quality = "auto") {
+  state.ended = true;
+
+  if (quality === "auto") {
+    const agreement = analyzeAgreement();
+    quality = success ? (agreement.praise ? "praise" : "scold") : "fail";
+  }
+  state.endingQuality = quality;
+
+  const score = calculateFinalScore(success, quality);
+  state.finalScore = score;
+
+  const result =
+    `${success ? "折衝成立" : "折衝失敗"}\n` +
+    `点数：${score}点\n` +
+    `理由：${reason}`;
+
+  $("resultBox").textContent = result;
+  addMessage("system", result);
+
+  if (success) {
+    playEnding();
+  } else {
+    openSheet();
+  }
+
+  updateUI();
+}
+
+async function checkHealth() {
+  state.busy = true;
+  $("serverStatus").textContent = "確認中です。";
+  updateUI();
+
+  try {
+    const res = await fetch("/api/health");
+    const data = await res.json();
+    if (!data.ok) throw new Error("server error");
+    state.serverOk = Boolean(data.hasApiKey);
+
+    if (state.serverOk) {
+      $("serverStatus").textContent = `接続準備完了 / モデル: ${data.model}`;
+    } else {
+      $("serverStatus").textContent = "AI接続の準備中です。少し時間をおいてください。";
+      addMessage("error", "AI接続の準備中です。少し時間をおいてください。");
+    }
+  } catch (e) {
+    state.serverOk = false;
+    $("serverStatus").textContent = FRIENDLY_ERROR;
+    addMessage("error", FRIENDLY_ERROR);
+  } finally {
+    state.busy = false;
+    updateUI();
+  }
+}
+
+async function testApi() {
+  const codeFromSheet = ($("connectCodeInput")?.value || "").trim();
+  const codeFromChat = ($("playerInput")?.value || "").trim();
+
+  if (codeFromSheet !== CONNECT_CODE && codeFromChat !== CONNECT_CODE) {
+    const msg = "接続確認にはコードを入力してください。";
+    $("serverStatus").textContent = msg;
+    addMessage("error", msg);
+    openSheet();
+    return;
+  }
+
+  state.busy = true;
+  $("serverStatus").textContent = "接続確認中です。";
+  updateUI();
+
+  try {
+    const res = await fetch("/api/test", { method: "POST", headers: { "Content-Type": "application/json" } });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.friendlyError || FRIENDLY_ERROR);
+
+    state.serverOk = true;
+    $("serverStatus").textContent = `接続確認済み / モデル: ${data.model}`;
+    if ($("connectCodeInput")) $("connectCodeInput").value = "";
+    if ($("playerInput").value.trim() === CONNECT_CODE) {
+      $("playerInput").value = "";
+      autoResize($("playerInput"));
+    }
+    addMessage("system", "接続確認できました。");
+  } catch (e) {
+    const msg = e.message || FRIENDLY_ERROR;
+    $("serverStatus").textContent = msg;
+    addMessage("error", msg);
+  } finally {
+    state.busy = false;
+    updateUI();
+  }
+}
+
+function triggerEndingTest() {
+  if (state.busy) return;
+
+  const profiles = [
+    { label: "GOOD END テスト", trust: 82, anger: 28, will: 88, pressure: 42 },
+    { label: "NORMAL END テスト", trust: 63, anger: 54, will: 71, pressure: 58 },
+    { label: "緊張感ありの成功テスト", trust: 66, anger: 68, will: 76, pressure: 72 }
+  ];
+  const profile = choose(profiles);
+
+  state.turn = Math.min(state.maxTurns, Math.max(state.turn, 1));
+  state.trust = profile.trust;
+  state.anger = profile.anger;
+  state.will = profile.will;
+  state.pressure = profile.pressure;
+  state.ended = true;
+  state.endingQuality = profile.label.includes("GOOD") ? "praise" : "scold";
+
+  addMessage("player", ENDING_TEST_CODE);
+  addMessage("system", "エンディングテストを開始します。");
+
+  state.finalScore = profile.label.includes("GOOD") ? 88 : 62;
+
+  const result =
+    `エンディングテスト\n` +
+    `点数：${state.finalScore}点\n` +
+    `ゲーム結果ではありません。`;
+
+  $("resultBox").textContent = result;
+  playEnding(true);
+  updateUI();
+}
+
+async function sendTurn() {
+  if (state.ended || state.busy || !state.serverOk) return;
+  const input = $("playerInput");
+  let text = input.value.trim();
+  if (!text) return;
+
+  if (text === ENDING_TEST_CODE) {
+    input.value = "";
+    autoResize(input);
+    triggerEndingTest();
+    return;
+  }
+
+  if (countChars(text) > PLAYER_MAX_CHARS) {
+    addMessage("error", "入力は35文字以内です。");
+    return;
+  }
+
+  text = limitChars(text, PLAYER_MAX_CHARS);
+  state.turn++;
+  addMessage("player", text);
+  state.conversation.push({ role: "player", text });
+  input.value = "";
+  autoResize(input);
+
+  scorePlayer(text);
+  state.busy = true;
+  updateUI();
+
+  const thinkingId = addThinking();
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerText: text,
+        gameState: {
+          turn: state.turn,
+          maxTurns: state.maxTurns,
+          trust: state.trust,
+          anger: state.anger,
+          will: state.will,
+          pressure: state.pressure
+        },
+        conversation: state.conversation,
+        characterId: state.characterId
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.friendlyError || FRIENDLY_ERROR);
+
+    removeThinking(thinkingId);
+    const reply = limitChars(data.reply, DEBTOR_MAX_CHARS);
+    const judgement = data.judgement || null;
+    state.lastJudgement = judgement;
+    addMessage("npc", reply);
+    state.conversation.push({ role: "npc", text: reply, judgement });
+    judgeEnd();
+  } catch (e) {
+    removeThinking(thinkingId);
+    addMessage("error", e.message || FRIENDLY_ERROR);
+    state.turn = Math.max(0, state.turn - 1);
+  } finally {
+    state.busy = false;
+    updateUI();
+  }
+}
+
+function addThinking() {
+  const id = "thinking-" + Date.now();
+  const chat = $("chat");
+  const div = document.createElement("div");
+  div.className = "msg npc";
+  div.id = id;
+  div.innerHTML = `<div class="avatar">滞</div><div class="bubble">……</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return id;
+}
+
+function removeThinking(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function choose(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function buildEndingLines(isTest = false) {
+  const quality = state.endingQuality || "scold";
+  const praise = quality === "praise";
+  const excellent = praise || state.finalScore >= 80;
+  const calm = state.anger < 45;
+  const tense = state.pressure >= 65 || state.anger >= 60;
+
+  const opening = excellent
+    ? [
+        "滞納者は、しばらく黙った。",
+        "受話口の向こうで、ため息が落ちた。",
+        "短い沈黙のあと、声の調子が変わった。"
+      ]
+    : tense
+      ? [
+          "少し荒かった声が、ようやく落ち着いた。",
+          "張りつめた空気が、少しだけゆるんだ。",
+          "ぎりぎりの会話が、なんとか形になった。"
+        ]
+      : [
+          "滞納者は、小さく息を吐いた。",
+          "会話の最後に、少しだけ本音が見えた。",
+          "責められるだけではないと、相手は気づいた。"
+        ];
+
+  const realization = calm
+    ? [
+        "逃げ続けていた支払いに、ようやく向き合う。",
+        "払えない理由ではなく、払う方法を考え始める。",
+        "生活の中に、小さな約束の場所ができた。"
+      ]
+    : [
+        "反発は残ったまま、それでも約束は残った。",
+        "納得しきれなくても、現実からは目をそらさなかった。",
+        "怒りの奥にあった不安が、少しだけほどけた。"
+      ];
+
+  const promise = praise
+    ? [
+        "必要な金額と支払日が、はっきり言葉になった。",
+        "停止を避けるための現実的な約束が取れた。",
+        "数字と言葉が、ようやく同じ方向を向いた。"
+      ]
+    : [
+        "支払約束は取れた。けれど、まだ課題は残る。",
+        "小さな一歩ではあるが、次につながる約束になった。",
+        "約束はゼロではない。ただ、十分とは言い切れない。"
+      ];
+
+  const closing = praise
+    ? [
+        "CLEAR：十分な支払約束を取った。",
+        "CLEAR：水は、まだつながっている。",
+        "CLEAR：交渉は形になった。"
+      ]
+    : [
+        "CLEAR：約束は取れたが、課題は残った。",
+        "CLEAR：次は、もっと確かな約束を取りに行け。",
+        "CLEAR：交渉は終わった。だが余地は残っている。"
+      ];
+
+  const lines = [
+    choose(opening),
+    choose(realization),
+    choose(promise),
+    `点数：${state.finalScore}点`,
+    choose(closing)
+  ];
+
+  if (isTest) {
+    lines.unshift("これはエンディング表示テストです。");
+  }
+
+  return lines;
+}
+
+function playEnding(isTest = false) {
+  const overlay = $("endingOverlay");
+  const linesBox = $("endingLines");
+  linesBox.innerHTML = "";
+
+  const lines = buildEndingLines(isTest);
+
+  overlay.classList.add("show");
+
+  lines.forEach((line, index) => {
+    const div = document.createElement("div");
+    div.className = "endingLine";
+    div.textContent = line;
+    linesBox.appendChild(div);
+
+    setTimeout(() => {
+      div.classList.add("show");
+    }, 450 + index * 900);
+  });
+}
+
+function closeEnding() {
+  $("endingOverlay").classList.remove("show");
+  openSheet();
+}
+
+function resetGame() {
+  state.turn = 0;
+  state.trust = 35;
+  state.anger = 25;
+  state.will = 25;
+  state.pressure = 20;
+  state.ended = false;
+  state.busy = false;
+  state.endingQuality = "none";
+  state.lastJudgement = null;
+  state.finalScore = 0;
+  const character = pickDebtorCharacter();
+  state.characterId = character.id;
+  state.characterLabel = character.label;
+  state.conversation = [];
+
+  $("chat").innerHTML = "";
+  $("resultBox").textContent = "まだ折衝中です。";
+  if ($("connectCodeInput")) $("connectCodeInput").value = "";
+  const opening = pick(character.openings);
+  addMessage("npc", opening);
+  state.conversation.push({ role: "npc", text: opening });
+  closeSheet();
+  const endingOverlay = document.getElementById("endingOverlay");
+  if (endingOverlay) endingOverlay.classList.remove("show");
+  updateUI();
+}
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 78) + "px";
+}
+
+function openSheet() {
+  $("sheetBackdrop").classList.add("show");
+  $("sheet").classList.add("show");
+}
+
+function closeSheet() {
+  $("sheetBackdrop").classList.remove("show");
+  $("sheet").classList.remove("show");
+}
+
+$("sendBtn").addEventListener("click", sendTurn);
+$("resetBtn").addEventListener("click", resetGame);
+$("topResetBtn").addEventListener("click", resetGame);
+$("testApiBtn").addEventListener("click", testApi);
+$("statusBtn").addEventListener("click", openSheet);
+$("closeSheetBtn").addEventListener("click", closeSheet);
+$("sheetBackdrop").addEventListener("click", closeSheet);
+$("endingRestartBtn").addEventListener("click", resetGame);
+$("endingCloseBtn").addEventListener("click", closeEnding);
+
+$("playerInput").addEventListener("compositionstart", () => { state.composing = true; });
+$("playerInput").addEventListener("compositionend", () => { state.composing = false; });
+
+$("playerInput").addEventListener("input", (e) => {
+  autoResize(e.target);
+  updateUI();
+});
+
+$("playerInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !state.composing && !e.isComposing) {
+    e.preventDefault();
+    sendTurn();
+  }
+});
+
+window.addEventListener("load", async () => {
+  resetGame();
+  await checkHealth();
+});
+</script>
+</body>
+</html>

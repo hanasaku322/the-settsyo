@@ -1,0 +1,14 @@
+{
+  "name": "the-sessho-ai-mobile-v30",
+  "version": "0.30.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
