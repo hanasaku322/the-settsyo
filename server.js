@@ -115,6 +115,12 @@ function limitChars(text, maxLen) {
   return Array.from(text || "").slice(0, maxLen).join("");
 }
 
+function clampNumber(value, fallback = 0, min = 0, max = 100) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(min, Math.min(max, num));
+}
+
 function sanitizeText(value, maxLen = 800) {
   if (typeof value !== "string") return "";
   return limitChars(value.replace(/\u0000/g, "").trim(), maxLen);
@@ -558,7 +564,7 @@ app.post("/api/chat", rateLimit, async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ザ・水道滞納者 AIサーバー版 v36`);
+  console.log(`ザ・水道滞納者 AIサーバー版 v37`);
   console.log(`http://localhost:${PORT}`);
   console.log(`Gemini model: ${GEMINI_MODEL}`);
   console.log(`API key loaded: ${Boolean(GEMINI_API_KEY)}`);

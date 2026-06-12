@@ -1,7 +1,7 @@
 @echo off
 cd /d %~dp0
 echo.
-echo === ザ・水道滞納者 v36 ===
+echo === ザ・水道滞納者 v37 ===
 echo.
 call npm.cmd install
 echo.
