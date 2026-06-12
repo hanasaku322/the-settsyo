@@ -201,9 +201,27 @@
 
     .inputBox {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr auto auto;
       gap: 8px;
       align-items: end;
+    }
+
+    .miniBtn {
+      min-width: 46px;
+      padding: 0 9px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .miniBtn.listening {
+      background: linear-gradient(135deg, #fb7185, #f59e0b);
+      color: #101010;
+      animation: pulseMic 1s ease-in-out infinite;
+    }
+
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
     }
 
     textarea {
@@ -515,6 +533,7 @@
             maxlength="35"
             enterkeyhint="send"
             placeholder="担当者として話す"></textarea>
+          <button class="miniBtn" id="voiceInputBtn" title="音声入力">🎙️</button>
           <button id="sendBtn">送信</button>
         </div>
       </footer>
@@ -573,7 +592,7 @@
 const $ = (id) => document.getElementById(id);
 
 const PLAYER_MAX_CHARS = 35;
-const DEBTOR_MAX_CHARS = 180;
+const DEBTOR_MAX_CHARS = 320;
 const TOTAL_ARREARS = 18400;
 const MIN_SUCCESS_PAYMENT = 9200;
 const FRIENDLY_ERROR = "AIとの接続に失敗しました。少し時間をおいてから、もう一度お試しください。";
@@ -596,7 +615,8 @@ let state = {
   lastJudgement: null,
   characterId: "conspiracy",
   characterLabel: "陰謀論者",
-  finalScore: 0
+  finalScore: 0,
+  listening: false
 };
 
 const debtorCharacters = [
@@ -689,7 +709,83 @@ function addMessage(role, text) {
   div.appendChild(bubble);
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+
+  return div;
 }
+
+
+const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+
+function speechInputSupported() {
+  return Boolean(SpeechRecognitionApi);
+}
+
+function initSpeechRecognition() {
+  if (!speechInputSupported() || recognition) return recognition;
+
+  recognition = new SpeechRecognitionApi();
+  recognition.lang = "ja-JP";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results || [])
+      .map(result => result?.[0]?.transcript || "")
+      .join("")
+      .trim();
+
+    if (!transcript) return;
+
+    const input = $("playerInput");
+    const current = input.value.trim();
+    const merged = current ? `${current} ${transcript}` : transcript;
+    input.value = limitChars(merged, PLAYER_MAX_CHARS);
+    autoResize(input);
+    updateUI();
+  };
+
+  recognition.onerror = () => {
+    state.listening = false;
+    addMessage("error", "音声入力に失敗しました。文字入力で続けてください。");
+    updateUI();
+  };
+
+  recognition.onend = () => {
+    state.listening = false;
+    updateUI();
+  };
+
+  return recognition;
+}
+
+function toggleVoiceInput() {
+  if (!speechInputSupported()) {
+    addMessage("error", "このブラウザは音声入力に対応していない可能性があります。ChromeやEdgeで試してください。");
+    return;
+  }
+
+  const rec = initSpeechRecognition();
+
+  if (state.listening) {
+    try { rec.stop(); } catch (_e) {}
+    state.listening = false;
+    updateUI();
+    return;
+  }
+
+  try {
+    state.listening = true;
+    updateUI();
+    rec.start();
+  } catch (_e) {
+    state.listening = false;
+    addMessage("error", "音声入力を開始できませんでした。マイク許可を確認してください。");
+    updateUI();
+  }
+}
+
 
 function updateCounter() {
   const len = countChars($("playerInput").value);
@@ -704,6 +800,17 @@ function updateUI() {
 
   const inputLen = countChars($("playerInput").value);
   $("sendBtn").disabled = state.ended || state.busy || !state.serverOk || inputLen === 0 || inputLen > PLAYER_MAX_CHARS;
+
+  const voiceInputBtn = $("voiceInputBtn");
+  if (voiceInputBtn) {
+    voiceInputBtn.disabled = state.ended || state.busy || !speechInputSupported();
+    voiceInputBtn.textContent = state.listening ? "■" : "🎙️";
+    voiceInputBtn.classList.toggle("listening", state.listening);
+    voiceInputBtn.title = speechInputSupported()
+      ? (state.listening ? "音声入力を停止" : "音声入力")
+      : "このブラウザは音声入力に非対応";
+  }
+
   $("testApiBtn").disabled = state.busy;
   updateCounter();
 }
@@ -971,11 +1078,7 @@ function endGame(success, reason, quality = "auto") {
   $("resultBox").textContent = result;
   addMessage("system", result);
 
-  if (success) {
-    playEnding();
-  } else {
-    openSheet();
-  }
+  playEnding();
 
   updateUI();
 }
@@ -1171,73 +1274,180 @@ function choose(list) {
 }
 
 function buildEndingLines(isTest = false) {
-  const quality = state.endingQuality || "scold";
+  const quality = state.endingQuality || "fail";
+  const agreement = analyzeAgreement();
+  const j = agreement?.judgement || {};
+  const amount = Number(j.amount || 0);
+  const date = j.date || "";
+  const score = state.finalScore || 0;
+  const character = state.characterLabel || "滞納者";
+  const success = quality === "praise" || quality === "scold";
   const praise = quality === "praise";
-  const excellent = praise || state.finalScore >= 80;
-  const calm = state.anger < 45;
-  const tense = state.pressure >= 65 || state.anger >= 60;
+  const scold = quality === "scold";
+  const angryFail = !success && (state.anger >= 80 || state.pressure >= 85);
+  const fastClear = success && state.turn <= 5;
+  const lastMinute = success && state.turn >= 9;
 
-  const opening = excellent
+  const characterLineMap = {
+    "陰謀論者": [
+      "最後まで制度を疑いながらも、滞納者は数字の現実からは逃げられなかった。",
+      "陰謀だ、仕組みだ、と言いながら、受話口の向こうで声が少しだけ弱くなった。",
+      "大きな話に逃げていた相手が、ようやく目の前の水道料金に戻ってきた。"
+    ],
+    "パチンコマン": [
+      "妙なツキの話は消え、残ったのは支払日と金額だけだった。",
+      "『次で取り返す』という軽さは、停止の現実の前で少しだけ沈んだ。",
+      "運任せの言葉が止まり、滞納者はようやく自分の財布を見た。"
+    ],
+    "ギャル": [
+      "軽い返事の奥から、少しだけ本気の焦りが見えた。",
+      "『無理め』の言葉が揺れて、最後には具体的な約束に変わった。",
+      "かわしていた声が、最後だけ少し真面目になった。"
+    ],
+    "車好きの兄ちゃん": [
+      "車の話に逃げていた兄ちゃんも、最後は水道料金の現実に戻ってきた。",
+      "エンジンやタイヤの話より先に、今日は支払約束が残った。",
+      "車を維持するためにも、生活の足元を止めるわけにはいかなかった。"
+    ],
+    "宇宙起業家風の男": [
+      "火星より先に、まず水道料金。壮大な構想は、現実の請求書に着陸した。",
+      "未来を語る声が止まり、最後に残ったのは支払日と金額だった。",
+      "キャッシュフローという言葉の奥で、滞納者は小さく約束を認めた。"
+    ]
+  };
+
+  const characterLines = characterLineMap[character] || [
+    "滞納者は、しばらく黙った。",
+    "受話口の向こうで、ため息が落ちた。",
+    "会話の最後に、少しだけ本音が見えた。"
+  ];
+
+  const openers = success
     ? [
-        "滞納者は、しばらく黙った。",
-        "受話口の向こうで、ため息が落ちた。",
-        "短い沈黙のあと、声の調子が変わった。"
+        "長い言い訳の先に、ようやく具体的な言葉が出た。",
+        "押し問答は続いたが、会話は最後に形になった。",
+        "逃げ道を探していた声が、少しずつ現実へ戻ってきた。",
+        "沈黙のあと、滞納者は小さく条件を飲み込んだ。",
+        "軽い反発と迷いを越えて、支払日の話が残った。"
       ]
-    : tense
+    : angryFail
       ? [
-          "少し荒かった声が、ようやく落ち着いた。",
-          "張りつめた空気が、少しだけゆるんだ。",
-          "ぎりぎりの会話が、なんとか形になった。"
+          "会話は最後まで噛み合わなかった。",
+          "相手の反発は強くなり、約束の言葉は出なかった。",
+          "言葉を重ねるほど、受話口の温度は下がっていった。",
+          "停止の話に相手は強く反応し、交渉はそこで崩れた。"
         ]
       : [
-          "滞納者は、小さく息を吐いた。",
-          "会話の最後に、少しだけ本音が見えた。",
-          "責められるだけではないと、相手は気づいた。"
+          "言い訳は続いた。だが、約束には届かなかった。",
+          "会話は続いたが、最後まで支払日は曖昧なままだった。",
+          "相手の事情は見えた。だが、数字は動かなかった。",
+          "あと一歩のところで、滞納者は明確な約束を避けた。"
         ];
 
-  const realization = calm
-    ? [
-        "逃げ続けていた支払いに、ようやく向き合う。",
-        "払えない理由ではなく、払う方法を考え始める。",
-        "生活の中に、小さな約束の場所ができた。"
-      ]
+  const moneyLines = success
+    ? praise
+      ? [
+          `${date || "指定日"}に${amount ? amount.toLocaleString() + "円" : "必要額"}。十分な支払約束が取れた。`,
+          `滞納額の半分以上。停止を避けるための現実的な約束になった。`,
+          `金額は足りている。あとは、その日を守らせるだけだ。`,
+          `数字は合格ラインを超えた。交渉は、確かに成果を出した。`
+        ]
+      : [
+          `${date || "指定日"}の約束は取れた。しかし金額はまだ足りない。`,
+          `支払う言葉は引き出した。だが、半分以上には届かなかった。`,
+          `ゼロではない。けれど、停止を避けるには弱い約束だった。`,
+          `一歩前進。ただし、次の一手を残す終わり方だった。`
+        ]
     : [
-        "反発は残ったまま、それでも約束は残った。",
-        "納得しきれなくても、現実からは目をそらさなかった。",
-        "怒りの奥にあった不安が、少しだけほどけた。"
+        "金額も日付も、最後まで確かな約束にはならなかった。",
+        "支払う意思は見えたかもしれない。だが、約束の形にはならなかった。",
+        "言葉は残った。だが、記録できる約束は残らなかった。",
+        "交渉の場は終わった。未納額だけが、まだそこにある。"
       ];
 
-  const promise = praise
-    ? [
-        "必要な金額と支払日が、はっきり言葉になった。",
-        "停止を避けるための現実的な約束が取れた。",
-        "数字と言葉が、ようやく同じ方向を向いた。"
-      ]
+  const tempoLines = success
+    ? fastClear
+      ? [
+          "早い段階で流れをつかんだ。相手に逃げる時間を与えなかった。",
+          "短いターンで要点を押さえた。無駄な応酬は少なかった。",
+          "相手の話に乗りつつ、支払いの話へ戻す判断が早かった。"
+        ]
+      : lastMinute
+        ? [
+            "ぎりぎりだった。あと一言ずれていれば、約束は逃げていた。",
+            "最後のターンで、ようやく会話が着地した。",
+            "粘った結果だ。スマートではないが、約束は残った。"
+          ]
+        : [
+            "途中で揺れたが、会話の主導権は失わなかった。",
+            "相手の言い訳を聞きすぎず、必要な条件へ戻した。",
+            "雑談も反発もあったが、最後は支払いの話に戻せた。"
+          ]
     : [
-        "支払約束は取れた。けれど、まだ課題は残る。",
-        "小さな一歩ではあるが、次につながる約束になった。",
-        "約束はゼロではない。ただ、十分とは言い切れない。"
+        "相手のペースに巻き込まれ、決める場面を作れなかった。",
+        "事情を聞くことと、約束を取ることは別だった。",
+        "フリートークには乗れた。だが、折衝としては締まらなかった。",
+        "相手の言い訳を崩しきれず、ターンだけが進んでいった。"
       ];
 
-  const closing = praise
-    ? [
-        "CLEAR：十分な支払約束を取った。",
-        "CLEAR：水は、まだつながっている。",
-        "CLEAR：交渉は形になった。"
-      ]
-    : [
-        "CLEAR：約束は取れたが、課題は残った。",
-        "CLEAR：次は、もっと確かな約束を取りに行け。",
-        "CLEAR：交渉は終わった。だが余地は残っている。"
-      ];
+  const closing = success
+    ? praise
+      ? score >= 90
+        ? [
+            "PERFECT CLEAR：短く、強く、条件を取った。",
+            "PERFECT CLEAR：水はつながり、約束も残った。",
+            "PERFECT CLEAR：これは折衝の勝利だ。"
+          ]
+        : [
+            "GOOD CLEAR：必要な約束を取った。",
+            "GOOD CLEAR：交渉は成果になった。",
+            "GOOD CLEAR：数字と言葉がそろった。"
+          ]
+      : [
+          "NORMAL CLEAR：約束は取れたが、課題は残った。",
+          "NORMAL CLEAR：次は半分以上を取りに行け。",
+          "NORMAL CLEAR：成果はある。だが十分ではない。"
+        ]
+    : angryFail
+      ? [
+          "BAD END：反発を招き、約束は取れなかった。",
+          "BAD END：水の話は、怒りだけを残した。",
+          "BAD END：次は、追い詰め方を考えろ。"
+        ]
+      : [
+          "BAD END：約束までは取れなかった。",
+          "BAD END：言葉は多かった。だが約束はなかった。",
+          "BAD END：次は、最後に決め切れ。"
+        ];
 
-  const lines = [
-    choose(opening),
-    choose(realization),
-    choose(promise),
-    `点数：${state.finalScore}点`,
-    choose(closing)
+  const layouts = [
+    [
+      choose(openers),
+      choose(characterLines),
+      choose(moneyLines),
+      choose(tempoLines),
+      `点数：${score}点`,
+      choose(closing)
+    ],
+    [
+      choose(characterLines),
+      choose(openers),
+      choose(tempoLines),
+      choose(moneyLines),
+      `点数：${score}点`,
+      choose(closing)
+    ],
+    [
+      choose(openers),
+      choose(moneyLines),
+      choose(characterLines),
+      `点数：${score}点`,
+      choose(tempoLines),
+      choose(closing)
+    ]
   ];
+
+  const lines = choose(layouts);
 
   if (isTest) {
     lines.unshift("これはエンディング表示テストです。");
@@ -1273,6 +1483,10 @@ function closeEnding() {
 }
 
 function resetGame() {
+  if (state.listening && recognition) {
+    try { recognition.stop(); } catch (_e) {}
+  }
+  state.listening = false;
   state.turn = 0;
   state.trust = 35;
   state.anger = 25;
@@ -1316,6 +1530,7 @@ function closeSheet() {
 }
 
 $("sendBtn").addEventListener("click", sendTurn);
+$("voiceInputBtn").addEventListener("click", toggleVoiceInput);
 $("resetBtn").addEventListener("click", resetGame);
 $("topResetBtn").addEventListener("click", resetGame);
 $("testApiBtn").addEventListener("click", testApi);
